@@ -1,50 +1,33 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { getUserProfile } from '../api/auth';
+import { createContext, useContext, useState, useEffect } from "react";
+import axios from "axios";
+import { fetchUser } from "../utils/authHelpers"; // Import utility function
 
-// 📌 Create Authentication Context
-const AuthContext = createContext(null);
+export const AuthContext = createContext();
 
-// 📌 Auth Provider
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token') || '');
+  const [loading, setLoading] = useState(true);
 
-  // 🔍 Load user details when token is available
-  useEffect(() => {
-    if (token) {
-      getUserProfile(token)
-        .then((userData) => setUser(userData))
-        .catch(() => {
-          logout();
-        });
+  const logout = async () => {
+    try {
+      await axios.post(`${import.meta.env.VITE_API_URL}/user/logout`, {}, { withCredentials: true });
+      setUser(null);
+    } catch (error) {
+      console.error("Logout failed:", error);
     }
-  }, [token]);
-
-  // 🆕 Login function (stores token in localStorage)
-  const login = (newToken) => {
-    localStorage.setItem('token', newToken);
-    setToken(newToken);
   };
 
-  // 🚪 Logout function
-  const logout = () => {
-    localStorage.removeItem('token');
-    setToken('');
-    setUser(null);
-  };
+  useEffect(() => {
+    fetchUser(setUser, logout); // Use the helper function
+    setLoading(false);
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, setUser, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
-  
+// Custom Hook to use AuthContext
+export const useAuth = () => useContext(AuthContext);
