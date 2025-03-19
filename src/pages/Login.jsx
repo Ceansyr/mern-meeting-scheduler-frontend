@@ -18,12 +18,13 @@ const Login = () => {
     setError('');
     try {
       const { token } = await loginUser(credentials);
-      login(token); // Store token in AuthContext
-      navigate('/profile'); // Redirect to profile page after login
+      login(token);
+      navigate('/profile');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      setError(err); 
     }
   };
+
 
   return (
     <div>
@@ -33,6 +34,7 @@ const Login = () => {
         <input type="email" name="email" placeholder="Email" onChange={handleChange} required />
         <input type="password" name="password" placeholder="Password" onChange={handleChange} required />
         <button type="submit">Login</button>
+        {error && <p style={{ color: 'red' }}>{error}</p>}
       </form>
     </div>
   );

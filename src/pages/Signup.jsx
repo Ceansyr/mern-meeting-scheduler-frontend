@@ -16,11 +16,12 @@ const Signup = () => {
     setError('');
     try {
       await registerUser(formData);
-      navigate('/login'); // Redirect to login page after signup
+      navigate('/login');
     } catch (err) {
-      setError(err.response?.data?.message || 'Signup failed');
+      setError(err);
     }
   };
+
 
   return (
     <div>
@@ -31,6 +32,7 @@ const Signup = () => {
         <input type="email" name="email" placeholder="Email" onChange={handleChange} required />
         <input type="password" name="password" placeholder="Password" onChange={handleChange} required />
         <button type="submit">Signup</button>
+        {error && <p style={{ color: 'red' }}>{error}</p>}
       </form>
     </div>
   );
