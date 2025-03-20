@@ -20,9 +20,14 @@ export const loginUser = async (credentials) => {
   }
 };
 
-export const getUserProfile = async (token) => {
-  const response = await axios.get(`${API_URL}/users/me`, { 
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  return response.data;
+export const fetchUser = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/user/current`, {
+      withCredentials: true, // ✅ Ensure credentials are sent
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to fetch user";
+  }
 };
+

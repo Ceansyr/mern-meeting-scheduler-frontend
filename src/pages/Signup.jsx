@@ -7,7 +7,6 @@ const Signup = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    username: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -32,7 +31,7 @@ const Signup = () => {
 
     try {
       await registerUser(formData);
-      navigate('/login');
+      navigate('./Username&Preference.jsx');
     } catch (err) {
       setError(err);
     }
@@ -64,18 +63,6 @@ const Signup = () => {
               name="lastName"
               placeholder="Last Name"
               value={formData.lastName}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className="input-group">
-            <label htmlFor="username">Username</label>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              placeholder="Username"
-              value={formData.username}
               onChange={handleChange}
               required
             />

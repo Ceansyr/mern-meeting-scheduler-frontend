@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
-import { fetchUser } from "../utils/authHelpers"; // Import utility function
+import { fetchUser } from "./authHelpers"; 
 
 export const AuthContext = createContext();
 
