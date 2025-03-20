@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { registerUser } from '../api/auth';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Signup.css';
 
@@ -30,10 +29,23 @@ const Signup = () => {
     }
 
     try {
-      await registerUser(formData);
-      navigate('./Username&Preference.jsx');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/user/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Registration failed');
+      }
+
+      // Navigate to the next page on successful registration
+      navigate('/username-preference');
     } catch (err) {
-      setError(err);
+      setError(err.message || 'An error occurred'); // Improved error handling
     }
   };
 
