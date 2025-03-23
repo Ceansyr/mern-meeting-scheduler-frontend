@@ -89,7 +89,7 @@ a:hover {
 .landing-hero-content h2 {
     font-family: 'Inter', sans-serif;
     font-weight: 600;
-    font-size: 28px;
+    font-size: 30px;
     text-align: center;
     vertical-align: center;
     letter-spacing: 0%;
@@ -106,8 +106,8 @@ a:hover {
     letter-spacing: 0%;
     line-height: 41.2px;
     margin-bottom: 1rem;
-    margin-left: 2rem;
-    margin-right: 2rem;
+    margin-left: 7rem;
+    margin-right: 7rem;
 }
 
 .landing-hero-buttons {
@@ -122,6 +122,7 @@ a:hover {
     border: none;
     border-radius: 20px;
     cursor: pointer;
+    margin-bottom: 15px;
 }
 .landing-hero-image {
     display: flex;
@@ -132,10 +133,12 @@ a:hover {
     background-position: center;
     background-size: cover;
     height: 600px;
-    width: 75%; 
+    width: 66%; 
     margin-left: auto;
     margin-right: auto;
     overflow: hidden; 
+    border-radius: 40px;
+    margin-bottom: 2%;
 }
 
 .landing-btn-primary,
@@ -172,128 +175,502 @@ a:hover {
     object-fit: cover;
 }
 
-/* Features Section */
-.landing-features-section {
+.calendar-section {
     display: flex;
-    justify-content: space-around;
     align-items: flex-start;
-    padding: 2rem;
-    background-color: #fff;
+    justify-content: space-between;
+    padding: 50px;
+    max-width: 1200px;
+    margin: 0 auto;
+    gap: 40px;
 }
-
-.landing-feature {
-    max-width: 280px;
-    text-align: center;
-    margin: 0 1rem;
+  
+.calendar-content {
+    flex: 1;
+    max-width: 50%;
 }
-
-.landing-feature img {
-    width: 100px;
-    height: 100px;
-    object-fit: contain;
+  
+.calendar-content h2 {
+    font-size: 28px;
+    line-height: 1.2;
     margin-bottom: 1rem;
 }
-
-.landing-feature h3 {
+  
+.calendar-content p {
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+  
+.calendar-content ul {
+    list-style: none;
+    padding-left: 0;
+}
+  
+.calendar-content li {
+    margin-bottom: 0.75rem;
+    position: relative;
+    padding-left: 20px;
+}
+  
+.calendar-content li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: #007bff;
+    font-weight: bold;
     font-size: 1.2rem;
-    margin-bottom: 0.5rem;
+}
+  
+.calendar-image {
+    position: relative;
+    width: 300px;
+    height: 350px;
+    flex-shrink: 0;
+}
+  
+.calendar-image-one,
+.calendar-image-two {
+    position: absolute;
+    width: 264px; /* 330px * 0.8 */
+    height: 336px; /* 420px * 0.8 */
+    background-size: cover;
+    background-position: center;
+    border-radius: 8px;
+}
+  
+.calendar-image-two {
+    top: 0px;
+    left: 120px;
+    transform: rotate(5deg);
+    background-image: url("../images/Calender2.png");
 }
 
-.landing-feature p {
+.calendar-image-one {
+    top: 0;
+    left: 0;
+    transform: rotate(-5deg);
+    background-image: url("../images/Calender1.png");
+}
+  
+.testimonial-section {
+    text-align: center;
+    padding: 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+  
+.testimonial-section h2 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+    font-size: 2.4rem;
+    margin-bottom: 20px;
+    text-align: left;
+}
+  
+.highlight {
+    color: #007bff;
+}
+  
+.customer-button {
+    background-color: transparent;
+    color: #1877F2;
+    padding: 10px 20px;
+    border: 2px solid #1877F2;
+    cursor: pointer;
+    border-radius: 25px; 
+    margin-bottom: 30px;
     font-size: 1rem;
+    height: 50px; 
+    width: 250px; 
+    display: flex;
+    align-items: center;
+    justify-content: center; 
+}
+.customer-button:hover {
+    background-color: #0056b3;
+}
+  
+.testimonial-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+  
+.testimonial-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: left;
+    margin-bottom: 20px;
+}
+  
+.testimonial-header-content {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+  
+.testimonial-summary {
+    width: 50%;
+    display: flex;
+    align-items: top;
+    justify-content: center;
+    text-align: left;
+    padding-left: 25%;
+}
+  
+.testimonial-summary .star {
+    width: 58px;
+    height: 31px;
+    background-image: url("../images/star.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    margin-right: 10px;
+}
+  
+.testimonial-summary-text {
+    font-size: 11px;
     color: #555;
 }
 
-/* Testimonials Section */
-.landing-testimonials-section {
-    padding: 2rem;
-    background-color: #f9f9f9;
+.testimonial-card {
+    background: #fff;
+    padding: 20px;
+    border-radius: 30px;
+    width: calc(50% - 20px); 
+    min-width: 250px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: left;
 }
-
-.landing-testimonials-section h2 {
-    text-align: center;
-    font-size: 1.8rem;
-    margin-bottom: 2rem;
+  
+.testimonial-card.dark {
+    background: #dcdcdc;
 }
-
-.landing-testimonial {
-    max-width: 700px;
-    margin: 0 auto 1.5rem auto;
-    text-align: center;
-}
-
-.landing-testimonial-text {
-    font-style: italic;
+  
+.testimonial-card h3 {
     margin-bottom: 0.5rem;
+    font-weight: 300;
+    font-family: 'Poppins', sans-serif;
+    line-height: 24px;
+    text-align: left;
 }
-
-.landing-testimonial-author {
-    color: #666;
+  
+.testimonial-card p {
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+    font-weight: 400;
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
 }
-
-/* Integrations Section */
-.landing-integrations-section {
-    padding: 2rem;
-    background-color: #fff;
-}
-
-.landing-integrations-section h2 {
-    text-align: center;
-    font-size: 1.8rem;
-    margin-bottom: 2rem;
-}
-
-.landing-integration-logos {
+  
+.testimonial-user {
     display: flex;
-    justify-content: center;
-    gap: 2rem;
+    align-items: bottom;
+    gap: 10px;
+    font-weight: 400;
+    font-family: 'Poppins', sans-serif;
+    font-size: 13px;
+    padding-top: 10px;
+}
+  
+.avatar {
+    width: 40px;
+    height: 40px;
+    background-color: #007bff;
+    border-radius: 50%;
 }
 
-.landing-integration-logos img {
-    width: 60px;
-    height: 60px;
-    object-fit: contain;
-}
-
-/* Footer Call-to-Action */
-.landing-footer-cta {
+.page-integrations-section {
+    max-width: 1200px;
+    margin: 0 40px;
+    padding: 10px 20px;
     text-align: center;
-    padding: 2rem;
-    background-color: #f9f9f9;
-    margin-top: auto;
+}
+  
+.page-integrations-title {
+    font-size: 2rem;
+    margin-bottom: 40px;
+}
+  
+.page-integrations-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    justify-items: center;
+}
+  
+.page-integration-card {
+    background-color: #fff;
+    width: 100%;
+    max-width: 300px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 
-.landing-footer-cta h3 {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
+.page-integration-icon {
+    width: 50px;
+    height: 50px; 
+    object-fit: contain; 
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .landing-hero-section {
-        flex-direction: column;
-    }
-
-    .landing-hero-content {
-        max-width: 100%;
-        margin-bottom: 2rem;
-    }
-
-    .landing-hero-image img {
-        width: 100%;
-        max-width: 400px;
-    }
-
-    .landing-features-section {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .landing-feature {
-        margin-bottom: 2rem;
-    }
-
-    .landing-integration-logos {
-        flex-wrap: wrap;
-    }
+.page-integration-info {
+    text-align: left;
 }
+  
+.page-integration-icon {
+    width: 50px;
+    height: 50px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    margin-bottom: 15px;
+    border-radius: 10px;
+}
+
+.integration-1 .page-integration-icon {
+    background-image: url("../images/Audiomack.png");
+}
+
+.integration-2 .page-integration-icon {
+    background-image: url("../images/bandsintown.png");
+}
+
+.integration-3 .page-integration-icon {
+    background-image: url("../images/bonfire.png");
+}
+
+.integration-4 .page-integration-icon {
+    background-image: url("../images/Books.png");
+}
+
+.integration-5 .page-integration-icon {
+    background-image: url("../images/buymeagift.png");
+}
+
+.integration-6 .page-integration-icon {
+    background-image: url("../images/cameo.png");
+}
+
+.integration-7 .page-integration-icon {
+    background-image: url("../images/clubhouse.png");
+}
+
+.integration-8 .page-integration-icon {
+    background-image: url("../images/community.png");
+}
+
+.integration-9 .page-integration-icon {
+    background-image: url("../images/contactdetails.png");
+}
+  
+.page-integration-info h3 {
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+}
+  
+.page-integration-info p {
+    font-size: 0.95rem;
+    color: #555;
+    line-height: 1.4;
+}
+
+.page-footer {
+    padding: 40px 20px;
+    margin-top: 60px;
+}
+  
+.page-footer-box {
+    background-color: #FFFFFF;
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2); 
+    border-radius: 30px;
+}
+
+.page-footer-top {
+    display: flex; 
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.page-footer-bottom {
+    flex: 1;
+    display: flex;
+    justify-content: space-between; 
+    align-items: left;
+    flex-wrap: wrap; 
+    gap: 20px;
+}
+  
+.page-footer-login-signup {
+    display: flex;
+    gap: 20px;
+    padding-left: 30px;
+}
+  
+.page-btn-light,
+.page-btn-primary {
+    padding: 12px 24px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+  
+.page-btn-light {
+    background-color: #EFF0EC;
+    color: #1E2330;
+}
+  
+.page-btn-light:hover {
+    background-color: #e6f0ff;
+}
+  
+.page-btn-primary {
+    background-color: #007bff;
+    color: #ffffff;
+    border-radius: 30px;
+}
+  
+.page-btn-primary:hover {
+    background-color: #0056b3;
+}
+  
+.page-footer-links {
+    flex: 3;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    font-weight: 600;
+    padding-left: 100px;
+    padding-top: 20px;
+}
+
+.page-footer-links a {
+    flex: 0 0 calc(33.333% - 15px); /* 3 links per row */
+    text-align: left;
+}
+  
+.page-footer-links a {
+    color: #333;
+    text-decoration: none;
+    font-size: 0.8rem;
+}
+  
+.page-footer-links a:hover {
+    text-decoration: underline;
+}
+  
+.page-footer-disclaimer {
+    font-size: 0.8rem;
+    max-width: 600px;
+    margin: 0 auto 30px 80px;
+    line-height: 1.4;
+    text-align: left;
+    font-weight: 600;
+    padding-top: 20px;
+}
+  
+.page-footer-social {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    padding-top: 20px;
+}
+
+.social-icon {
+    width: 20px;
+    height: 20px;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: 10%;
+}
+
+.social-icon-twitter {
+    background-image: url("../images/twitter.png");
+}
+
+.social-icon-youtube {
+    background-image: url("../images/youtube.png");
+}
+
+.social-icon-instagram {
+    background-image: url("../images/insta.png");
+}
+
+.social-icon-tune {
+    background-image: url("../images/tune.png");
+}
+
+@media (max-width: 992px) {
+  .testimonial-card {
+    width: calc(50% - 20px); 
+  }
+}
+
+@media (max-width: 576px) {
+  .calendar-section {
+    flex-direction: column;
+    align-items: center;
+  }
+  .calendar-content {
+    max-width: 100%;
+    margin-bottom: 30px;
+  }
+  .calendar-image {
+    width: 250px;
+    height: 300px;
+  }
+  .testimonial-card {
+    width: 100%;
+  }
+  .landing-hero-section {
+    flex-direction: column;
+  }
+
+  .landing-hero-content {
+    max-width: 100%;
+    margin-bottom: 2rem;
+  }
+
+  .landing-hero-image img {
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .landing-features-section {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .landing-feature {
+    margin-bottom: 2rem;
+  }
+
+  .landing-integration-logos {
+    flex-wrap: wrap;
+  }
+
+  .page-footer-links {
+    gap: 10px;
+  }
+}
+
