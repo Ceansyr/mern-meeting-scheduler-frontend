@@ -1,48 +1,118 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import "../styles/PreferencesPage.css";
 
 const UsernameAndPreference = () => {
-    const [username, setUsername] = useState('');
-    const [preference, setPreference] = useState('');
+    const preferenceCategories = [
+        { id: "sales", name: "Sales" },
+        { id: "finance", name: "Finance" },
+        { id: "consulting", name: "Consulting" },
+        { id: "tech", name: "Tech" },
+        { id: "education", name: "Education" },
+        { id: "government", name: "Government & Politics" },
+        { id: "recruiting", name: "Recruiting" },
+        { id: "marketing", name: "Marketing" },
+    ];
 
-    const handleSubmit = (e) => {
+    const [formData, setFormData] = useState({
+        username: "",
+        selectedCategory: "",
+    });
+    const [error, setError] = useState('');
+    const navigate = useNavigate();
+
+    const handleCategoryClick = (category) => {
+        setFormData((prevData) => ({
+            ...prevData,
+            selectedCategory: category,
+        }));
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prevData) => ({
+            ...prevData,
+            [name]: value,
+        }));
+    };
+
+    const handleContinue = async (e) => {
         e.preventDefault();
-        console.log('Username:', username);
-        console.log('Preference:', preference);
+        setError('');
+
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/user/preference`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+                body: JSON.stringify(formData),
+                credentials: "include",
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to save Username or Preference');
+            }
+
+            navigate('/username-preference');
+        } catch (err) {
+            setError(err.message || 'An error occurred');
+        }
     };
 
     return (
-        <div>
-            <h1>Username & Preference</h1>
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label htmlFor="username">Username:</label>
+        <div className="page-preferences-container">
+
+            <div className="page-preferences-form">
+                <div className="page-preferences-logo">
+                    <div className="logo-icon"></div>
+                </div>
+                <h1 className="page-preferences-title">Your Preferences</h1>
+
+                <div className="page-preferences-username">
                     <input
                         type="text"
                         id="username"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        name="username"
+                        placeholder="Tell us your username"
+                        value={formData.username}
+                        onChange={handleInputChange}
                     />
                 </div>
-                <div>
-                    <label>Preference:</label>
-                    <div>
-                        {['Option 1', 'Option 2', 'Option 3', 'Option 4', 'Option 5', 'Option 6', 'Option 7', 'Option 8'].map((option, index) => (
-                            <button
-                                type="button"
-                                key={index}
-                                onClick={() => setPreference(option)}
-                                style={{
-                                    margin: '5px',
-                                    backgroundColor: preference === option ? 'lightblue' : 'white',
-                                }}
-                            >
-                                {option}
-                            </button>
-                        ))}
-                    </div>
+
+                <p className="page-preferences-subtitle">
+                    Select one category that best describes your CNNCT:
+                </p>
+
+                <div className="page-preferences-options">
+                    {preferenceCategories.map((category) => (
+                        <button
+                            key={category.id}
+                            type="button"
+                            className={`page-preferences-option ${
+                                formData.selectedCategory === category.name ? "active" : ""
+                            }`}
+                            onClick={() => handleCategoryClick(category.name)}
+                        >
+                            <div className={ `category-icon category-icon-${category.id}`}></div>
+                            {category.name}
+                        </button>
+                    ))}
                 </div>
-                <button type="submit">Submit</button>
-            </form>
+
+                <button
+                    className="page-preferences-continue"
+                    onClick={handleContinue}
+                    disabled={!formData.username || !formData.selectedCategory}
+                >
+                    Continue
+                </button>
+                {error && <p className="error-message">{error}</p>}
+            </div>
+
+            <div className="page-preferences-image"></div>
         </div>
     );
 };

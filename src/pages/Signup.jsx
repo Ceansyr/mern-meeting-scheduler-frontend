@@ -35,17 +35,20 @@ const Signup = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
+        credentials: "include",
       });
 
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Registration failed');
       }
+      
+      const data = await response.json();
+      localStorage.setItem('token', `${data.token}`);
 
-      // Navigate to the next page on successful registration
       navigate('/username-preference');
     } catch (err) {
-      setError(err.message || 'An error occurred'); // Improved error handling
+      setError(err.message || 'An error occurred'); 
     }
   };
 
