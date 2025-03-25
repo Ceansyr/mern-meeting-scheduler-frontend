@@ -10,12 +10,34 @@ const Signup = () => {
     password: '',
     confirmPassword: '',
   });
-
+  const [passwordStrength, setPasswordStrength] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
+  const evaluatePasswordStrength = (password) => {
+    let strength = '';
+    const lengthCriteria = password.length >= 6;
+    const uppercaseCriteria = /[A-Z]/.test(password);
+    const numberCriteria = /[0-9]/.test(password);
+    const specialCharCriteria = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    if (lengthCriteria && uppercaseCriteria && numberCriteria && specialCharCriteria) {
+      strength = 'Strong';
+    } else if (lengthCriteria && (uppercaseCriteria || numberCriteria || specialCharCriteria)) {
+      strength = 'Medium';
+    } else {
+      strength = 'Weak';
+    }
+    setPasswordStrength(strength);
+  };
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+
+    if (name === 'password') {
+      evaluatePasswordStrength(value);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -24,6 +46,11 @@ const Signup = () => {
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
+      return;
+    }
+
+    if (passwordStrength === 'Weak') {
+      setError('Password is too weak. Please choose a stronger password.');
       return;
     }
 
@@ -111,6 +138,11 @@ const Signup = () => {
                   onChange={handleChange}
                   required
                 />
+                {formData.password && (
+                  <p className={`password-strength ${passwordStrength.toLowerCase()}`}>
+                    Password Strength: {passwordStrength}
+                  </p>
+                )}
               </div>
               <div className="input-group">
                 <label htmlFor="confirmPassword">Confirm Password</label>
