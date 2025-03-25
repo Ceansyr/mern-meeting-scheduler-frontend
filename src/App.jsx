@@ -4,6 +4,7 @@ import UsernamePreference from "./pages/Username&Preference";
 import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import "./styles/App.css";
+import EventsPage from "./pages/Events";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
           <Route path="/signup" element={<Signup />}/>
           <Route path="/username-preference" element={<UsernamePreference />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/events" element={<EventsPage />} />
         </Routes>
       </Router>
   );
