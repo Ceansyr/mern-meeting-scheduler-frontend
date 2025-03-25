@@ -22,7 +22,6 @@ const Signup = () => {
     e.preventDefault();
     setError('');
 
-    // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -61,7 +60,7 @@ const Signup = () => {
           <div className="signup-content">
             <div className='signup-title'>
               <h2>Create an Account</h2>
-              <a href="./Login.jsx">sign in instead</a>
+              <a href="/login">sign in instead</a>
             </div>
             {error && <p className="error-message">{error}</p>}
             <form onSubmit={handleSubmit}>

@@ -1,41 +1,95 @@
 import { useState } from 'react';
-import { loginUser } from '../api/auth';
-import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
-  const [credentials, setCredentials] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+  });
+
   const [error, setError] = useState('');
-  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setCredentials({ ...credentials, [e.target.name]: e.target.value });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    
     try {
-      const { token } = await loginUser(credentials);
-      login(token);
-      navigate('/profile');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/user/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Login failed');
+      }
+      
+      const data = await response.json();
+      localStorage.setItem('token', `${data.token}`);
+
+      navigate('/');
     } catch (err) {
-      setError(err); 
+      setError(err.message || 'An error occurred'); 
     }
   };
 
-
   return (
-    <div>
-      <h2>Login</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <input type="email" name="email" placeholder="Email" onChange={handleChange} required />
-        <input type="password" name="password" placeholder="Password" onChange={handleChange} required />
-        <button type="submit">Login</button>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-      </form>
+    <div className="container">
+      <div className="login-container">
+        <div className='logo'>
+        </div>
+        <div className="login-form">
+          <div className="login-content">
+            <div className='login-title'>
+              <h2>Sign in</h2>
+            </div>
+            {error && <p className="error-message">{error}</p>}
+            <form onSubmit={handleSubmit}>
+              <div className="input-group">
+                <label htmlFor="userName">Username</label>
+                <input
+                  type="text"
+                  id="username"
+                  name="username"
+                  placeholder="User Name"
+                  value={formData.username}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="input-group">
+                <label htmlFor="password">Password</label>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <button type="submit" className="login-btn">
+                Log in
+              </button>
+            </form>
+          </div>
+          <div className="warning">
+            <p>Don't have an account? </p> <a href="./Signup.jsx">Sign up</a>
+          </div>
+        </div>
+      </div>
+      <div className="login-image">
+        </div>
     </div>
   );
 };
