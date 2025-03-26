@@ -1,18 +1,35 @@
-.page-events-container {
-    display: flex;
-    min-height: 100vh;
+/* ============================= */
+/* Global Reset and Base Styles  */
+/* ============================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
     font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
     color: #333;
 }
 
+/* ============================= */
+/* Common Container and Layout   */
+/* ============================= */
+.page-events-container {
+    display: flex;
+    min-height: 100vh;
+    background-color: #f5f5f5;
+}
+
+/* Sidebar (common for Events and Create pages) */
 .page-events-sidebar {
     width: 240px;
     background-color: #fff;
     border-right: 1px solid #ddd;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    padding: 1rem;
+    padding: 1.5rem 1rem;
 }
 
 .page-events-logo {
@@ -29,18 +46,20 @@
 .page-events-logo span {
     font-size: 1.2rem;
     font-weight: 600;
+    color: #333;
 }
 
 .page-events-nav ul {
     list-style: none;
-    padding-left: 0;
+    padding: 0;
     margin-bottom: 2rem;
-    width: 100%;
 }
 
 .page-events-nav li {
     padding: 0.5rem 0;
     cursor: pointer;
+    font-size: 1rem;
+    color: #333;
 }
 
 .page-events-nav li.active {
@@ -76,14 +95,17 @@
     margin-right: 0.5rem;
 }
 
+/* ============================= */
+/* Main Content (Events Page)    */
+/* ============================= */
 .page-events-main {
     flex: 1;
+    padding: 2rem 3rem;
     background-color: #f5f5f5;
-    padding: 2rem;
 }
 
 .page-events-header h2 {
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     margin-bottom: 0.25rem;
 }
 
@@ -97,16 +119,24 @@
     margin-bottom: 1rem;
 }
 
-.page-events-cards {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
+/* Category Titles for Event Cards */
+.page-events-category-title {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    color: #333;
 }
 
+/* Cards Layout */
+.page-events-category-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Individual Event Card */
 .page-events-card {
     background-color: #fff;
     border-radius: 8px;
-    width: 240px;
     padding: 1rem;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
@@ -114,6 +144,7 @@
 .page-events-card h3 {
     font-size: 1.1rem;
     margin-bottom: 0.5rem;
+    color: #333;
 }
 
 .page-events-card p {
@@ -122,13 +153,17 @@
     margin-bottom: 0.75rem;
 }
 
+/* Card Status and Toggle */
 .page-events-card-status {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 1rem;
+    font-size: 0.9rem;
+    color: #333;
 }
 
+/* Toggle Switch */
 .switch {
     position: relative;
     display: inline-block;
@@ -140,10 +175,6 @@
     opacity: 0;
     width: 0;
     height: 0;
-}
-
-.slider.round {
-    border-radius: 34px;
 }
 
 .slider {
@@ -165,7 +196,7 @@
     width: 14px;
     left: 2px;
     bottom: 2px;
-    background-color: #fff;
+    background-color: white;
     transition: 0.4s;
     border-radius: 50%;
 }
@@ -178,6 +209,11 @@ input:checked + .slider:before {
     transform: translateX(16px);
 }
 
+.slider.round {
+    border-radius: 34px;
+}
+
+/* Card Action Buttons */
 .page-events-card-actions {
     display: flex;
     gap: 0.5rem;
@@ -190,24 +226,152 @@ input:checked + .slider:before {
     cursor: pointer;
 }
 
+/* ============================= */
+/* Common Form Styles (For CreateEventPage) */
+/* ============================= */
+.page-create-event-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif;
+}
+
+.page-create-event-title {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    color: #333;
+}
+
+.page-create-event-error {
+    color: red;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.page-create-event-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.page-create-event-step {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.page-create-event-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.page-create-event-group label {
+    font-weight: 500;
+    color: #555;
+}
+
+.page-create-event-group input,
+.page-create-event-group textarea {
+    padding: 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.page-create-event-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.page-create-event-group-inline {
+    display: flex;
+    gap: 1rem;
+}
+
+.page-create-event-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.page-create-event-btn-back,
+.page-create-event-btn-submit,
+.page-create-event-btn-next {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.page-create-event-btn-next,
+.page-create-event-btn-submit {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.page-create-event-btn-next:hover,
+.page-create-event-btn-submit:hover {
+    background-color: #0056b3;
+}
+
+.page-create-event-btn-back {
+    background-color: #f2f2f2;
+    color: #333;
+}
+
+.page-create-event-btn-back:hover {
+    background-color: #e6e6e6;
+}
+
+/* ============================= */
+/* Responsive Adjustments       */
+/* ============================= */
 @media (max-width: 768px) {
-    .page-events-cards {
-        justify-content: center;
-    }
-    .page-events-card {
-        width: 90%;
-        max-width: 300px;
-    }
     .page-events-container {
         flex-direction: column;
     }
+
     .page-events-sidebar {
         width: 100%;
-        border-right: none;
-        border-top: 1px solid #ddd;
-        order: 1;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
     }
+
+    .page-events-nav ul {
+        display: flex;
+        gap: 1rem;
+        margin: 0;
+    }
+
     .page-events-main {
-        order: 0;
+        padding: 1rem;
+    }
+
+    .page-events-category-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .page-create-event-container {
+        padding: 1rem;
+    }
+
+    .page-create-event-group input,
+    .page-create-event-group textarea {
+        font-size: 0.9rem;
+    }
+
+    .page-create-event-btn-back,
+    .page-create-event-btn-submit,
+    .page-create-event-btn-next {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
     }
 }
