@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Event.css";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faLink, faCalendarDay, faClock, faGear } from "@fortawesome/free-solid-svg-icons";
 
 function EventsPage() {
   const [events, setEvents] = useState([]);
@@ -122,32 +124,30 @@ function EventsPage() {
   return (
     <div className="page-events-container">
       {/* Sidebar */}
-      <aside className="page-events-sidebar">
-        <div className="page-events-logo">
-          <img src="logo-placeholder.png" alt="CNNCT Logo" />
-          <span>CNNCT</span>
-        </div>
-        <nav className="page-events-nav">
-          <ul>
-            <li className="active">Events</li>
-            <li>Booking</li>
-            <li>Availability</li>
-            <li>Settings</li>
-          </ul>
-        </nav>
-        <button
-          className="page-events-create-btn"
-          onClick={() => navigate("/create-event")}
-        >
-          + Create
-        </button>
-        <div className="page-events-user">
-          <img src="user-avatar.png" alt="User Avatar" />
-          <p>{currentUser?.username || "Guest"}</p>
-        </div>
-      </aside>
+        <aside className="page-events-sidebar">
+          <div className="page-events-logo">
+          </div>
+          <nav className="page-events-nav">
+            <ul>
+          <li className="active"><FontAwesomeIcon icon={faLink} />  Events</li>
+          <li><FontAwesomeIcon icon={faCalendarDay} />  Booking</li>
+          <li><FontAwesomeIcon icon={faClock}  />  Availability</li>
+          <li><FontAwesomeIcon icon={faGear}  />  Settings</li>
+            </ul>
+          </nav>
+          <button
+            className="page-events-create-btn"
+            onClick={() => navigate("/create-event")}
+          >
+            + Create
+          </button>
+          <div className="page-events-user">
+            <div className="user-avatar">   </div>
+            <p>{currentUser?.username || "Guest"}</p>
+          </div>
+        </aside>
 
-      {/* Main Content */}
+        {/* Main Content */}
       <main className="page-events-main">
         <header className="page-events-header">
           <h2>Events</h2>
@@ -158,7 +158,7 @@ function EventsPage() {
 
         <div className="page-events-cards">
           {/* Upcoming Meetings */}
-          <h3 className="page-events-category-title">Upcoming Meetings</h3>
+          
           <div className="page-events-category-cards">
             {categorizedEvents.upcoming.map((evt) => (
               <div key={evt._id} className="page-events-card">
@@ -186,7 +186,6 @@ function EventsPage() {
           </div>
 
           {/* Pending Meetings */}
-          <h3 className="page-events-category-title">Pending Meetings</h3>
           <div className="page-events-category-cards">
             {categorizedEvents.pending.map((evt) => (
               <div key={evt._id} className="page-events-card">
@@ -214,7 +213,6 @@ function EventsPage() {
           </div>
 
           {/* Canceled Meetings */}
-          <h3 className="page-events-category-title">Canceled Meetings</h3>
           <div className="page-events-category-cards">
             {categorizedEvents.canceled.map((evt) => (
               <div key={evt._id} className="page-events-card">

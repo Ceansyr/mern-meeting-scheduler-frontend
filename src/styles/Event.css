@@ -24,75 +24,98 @@ body {
 
 /* Sidebar (common for Events and Create pages) */
 .page-events-sidebar {
-    width: 240px;
+    width: 200px;
     background-color: #fff;
-    border-right: 1px solid #ddd;
     display: flex;
     flex-direction: column;
-    padding: 1.5rem 1rem;
 }
 
 .page-events-logo {
     display: flex;
     align-items: center;
     margin-bottom: 2rem;
-}
-
-.page-events-logo img {
-    height: 40px;
-    margin-right: 0.5rem;
-}
-
-.page-events-logo span {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #333;
+    background-image: url('../images/logo.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    height: 60px;
+    margin: 1rem 2rem 2rem 2rem;
 }
 
 .page-events-nav ul {
     list-style: none;
     padding: 0;
     margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 1.5rem;
 }
 
 .page-events-nav li {
     padding: 0.5rem 0;
     cursor: pointer;
     font-size: 1rem;
-    color: #333;
+    color: #676767;
+    gap: 1rem;
+    display: flex;
+    justify-content: center;
 }
 
 .page-events-nav li.active {
     font-weight: bold;
     color: #007bff;
+    background-color: #F3F3F1;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    padding: 1rem;
 }
 
 .page-events-create-btn {
-    padding: 0.5rem 1rem;
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
+    padding: 0.5rem 0.5rem;
+    background-color: transparent;
+    color: #1877F2;
+    border: 1px solid #1877F2;
+    border-radius: 20px;
     cursor: pointer;
-    margin-bottom: auto;
+    margin: 0 2rem auto 2rem;
+    font-size: 1.1rem;
 }
 
 .page-events-create-btn:hover {
     background-color: #0056b3;
+    color: white;
 }
 
 .page-events-user {
     display: flex;
     align-items: center;
     margin-top: 2rem;
+    border: 2px solid black;
+    border-radius: 50px;
+    padding: 0.5rem 0.5rem;
+    gap: 0.5rem;
+    margin: 1.5rem 1.5rem;
 }
 
-.page-events-user img {
+.user-avatar {
     width: 40px;
     height: 40px;
     border-radius: 50%;
     object-fit: cover;
     margin-right: 0.5rem;
+    background-image: url('../images/user-avatar.png');
+    background-size: cover;
+    background-position: center;
+}
+
+.page-events-user p {
+    font-size: 1.2rem;
+    font-weight: semi-bold;
+    color: black;
+    margin: 0;
 }
 
 /* ============================= */
@@ -100,7 +123,7 @@ body {
 /* ============================= */
 .page-events-main {
     flex: 1;
-    padding: 2rem 3rem;
+    padding: 2rem 1.5rem;
     background-color: #f5f5f5;
 }
 
@@ -229,104 +252,166 @@ input:checked + .slider:before {
 /* ============================= */
 /* Common Form Styles (For CreateEventPage) */
 /* ============================= */
-.page-create-event-container {
-    max-width: 800px;
-    margin: 2rem auto;
-    padding: 2rem;
+/* Container */
+.add-event-container {
+    max-width: 900px;
+    margin: 0 auto;
     background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
     font-family: Arial, sans-serif;
 }
 
-.page-create-event-title {
-    font-size: 2rem;
+.line {
+    display: block;
+    border-top: 2px solid black;
+    margin: 0;
+}
+
+/* Title */
+.add-event-title {
+    font-size: 1.5rem;
     margin-bottom: 1.5rem;
     text-align: center;
     color: #333;
 }
 
-.page-create-event-error {
+/* Error Message */
+.add-event-error {
     color: red;
     text-align: center;
     margin-bottom: 1rem;
 }
 
-.page-create-event-form {
+/* Form */
+.add-event-form {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
 }
 
-.page-create-event-step {
+/* Top Row */
+.add-event-top-row {
+    gap: 2rem;
+    margin-top: 1rem;
+}
+
+.label-input{
     display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+    padding: 0.5rem 4rem;
+    align-items: center;
+    color: #343434;
 }
 
-.page-create-event-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+.label-input label {
+    flex: 30%;
+    font-weight: medium;
+    max-width: 200px;
 }
 
-.page-create-event-group label {
-    font-weight: 500;
-    color: #555;
-}
-
-.page-create-event-group input,
-.page-create-event-group textarea {
-    padding: 0.75rem;
+.label-input select,
+.label-input input {
+    flex: 70%;
+    padding: 0.6rem;
     border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 1rem;
+    border-radius: 8px;
+    font-size: 0.65rem;
 }
 
-.page-create-event-group textarea {
-    resize: vertical;
-    min-height: 80px;
-}
 
-.page-create-event-group-inline {
+/* Columns in Top Row */
+.add-event-column {
     display: flex;
+    flex-direction: column;
     gap: 1rem;
 }
 
-.page-create-event-actions {
+/* Form Field */
+.add-event-field label {
+    font-weight: 500;
+    color: #333;
+}
+
+.add-event-field label span {
+    color: red;
+    margin-left: 4px;
+}
+
+.add-event-field input {
+    padding: 0.6rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+.duration {
+    flex: 70%;  
+    max-width: 200px;
+    justify-content: flex-start;
+    margin-right: auto;
+}
+
+/* Bottom Row */
+.add-event-bottom-row {
+    gap: 2rem;
+    margin-bottom: 1rem;
+}
+
+.add-event-date-time,
+.add-event-duration {
     display: flex;
-    justify-content: space-between;
+    gap: 2rem;
+}
+
+.add-event-datetime-group {
+    flex: 70%;
+    display: flex;
+    gap: 0.4rem;
+}
+
+.add-event-datetime-group input,
+.add-event-datetime-group select {
+    min-width: 0;
+}
+
+.small {
+    max-width: 70px;
+}
+
+/* Buttons */
+.add-event-buttons {
+    display: flex;
+    justify-content: flex-end;
     gap: 1rem;
 }
 
-.page-create-event-btn-back,
-.page-create-event-btn-submit,
-.page-create-event-btn-next {
-    padding: 0.75rem 1.5rem;
+.add-event-cancel,
+.add-event-save {
+    padding: 0.75rem 3rem;
+    font-size: 0.95rem;
     border: none;
-    border-radius: 6px;
-    font-size: 1rem;
+    border-radius: 8px;
     cursor: pointer;
 }
 
-.page-create-event-btn-next,
-.page-create-event-btn-submit {
-    background-color: #007bff;
-    color: #fff;
-}
-
-.page-create-event-btn-next:hover,
-.page-create-event-btn-submit:hover {
-    background-color: #0056b3;
-}
-
-.page-create-event-btn-back {
+.add-event-cancel {
     background-color: #f2f2f2;
     color: #333;
 }
 
-.page-create-event-btn-back:hover {
+.add-event-cancel:hover {
     background-color: #e6e6e6;
+}
+
+.add-event-save {
+    background-color: #007bff;
+    color: #fff;
+    margin-right: 4rem;
+}
+
+.add-event-save:hover {
+    background-color: #0056b3;
 }
 
 /* ============================= */
@@ -359,19 +444,16 @@ input:checked + .slider:before {
         grid-template-columns: 1fr;
     }
 
-    .page-create-event-container {
-        padding: 1rem;
+    .add-event-top-row,
+    .add-event-bottom-row {
+        flex-direction: column;
     }
 
-    .page-create-event-group input,
-    .page-create-event-group textarea {
-        font-size: 0.9rem;
+    .add-event-column {
+        gap: 1rem;
     }
 
-    .page-create-event-btn-back,
-    .page-create-event-btn-submit,
-    .page-create-event-btn-next {
-        font-size: 0.9rem;
-        padding: 0.5rem 1rem;
+    .add-event-datetime-group {
+        flex-wrap: wrap;
     }
 }
