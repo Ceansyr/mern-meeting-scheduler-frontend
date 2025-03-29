@@ -4,6 +4,7 @@ import UsernamePreference from "./pages/Username&Preference";
 import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import CreateEvent from "./pages/CreateEvent";
+import Booking from "./pages/Booking";
 import "./styles/App.css";
 import EventsPage from "./pages/Events";
 
@@ -17,6 +18,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/events" element={<EventsPage />} />
           <Route path="/create-event" element={<CreateEvent />} />
+          <Route path="/booking" element={<Booking />} />
         </Routes>
       </Router>
   );

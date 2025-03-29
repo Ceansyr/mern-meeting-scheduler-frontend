@@ -10,7 +10,6 @@ function EventsPage() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // Fetch logged-in user info directly
   const fetchCurrentUser = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -39,7 +38,6 @@ function EventsPage() {
     }
   };
 
-  // Fetch all events from the backend
   const fetchEvents = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -56,9 +54,11 @@ function EventsPage() {
         },
         credentials: "include",
       });
+
       if (!response.ok) {
         throw new Error("Failed to fetch events");
       }
+
       const data = await response.json();
       setEvents(data);
     } catch (err) {
@@ -71,83 +71,150 @@ function EventsPage() {
     fetchEvents();
   }, []);
 
-  // Toggle event active state
   const handleToggle = async (eventId, currentState) => {
     try {
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/events/${eventId}/toggle`,
         {
           method: "PUT",
-          headers: { 
+          headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
           body: JSON.stringify({ isActive: !currentState }),
         }
       );
+
       if (!response.ok) {
         throw new Error("Failed to toggle event");
       }
+
       fetchEvents();
     } catch (err) {
       setError(err.message);
     }
   };
 
-  // Delete event
   const handleDelete = async (eventId) => {
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/events/${eventId}`, {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       });
+
       if (!response.ok) {
         throw new Error("Failed to delete event");
       }
+
       fetchEvents();
     } catch (err) {
       setError(err.message);
     }
   };
 
-  // Edit event (placeholder)
   const handleEdit = (eventId) => {
-    navigate(`/edit-event/${eventId}`);
+    handleDelete(eventId);
+    navigate(`/create-event`);
   };
 
-  // Categorize events by status
-  const categorizedEvents = {
-    upcoming: events.filter((evt) => evt.status === "upcoming"),
-    pending: events.filter((evt) => evt.status === "pending"),
-    canceled: events.filter((evt) => evt.status === "canceled"),
+  const handleCopyLink = (eventId) => {
+    try {
+      const event = events.find((evt) => evt._id === eventId);
+      if (!event) {
+        throw new Error("Event not found");
+      }
+
+      if (!event.eventLink) {
+        throw new Error("No link found for this event");
+      }
+
+      navigator.clipboard.writeText(event.eventLink)
+        .then(() => {
+          alert("Link copied to clipboard!");
+        })
+        .catch((err) => {
+          console.error("Failed to copy link:", err);
+          setError("Failed to copy link");
+        });
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const formatTimeRange = (startTime, duration) => {
+    try {
+      const time = startTime.split(" ");
+      const [hours, minutes] = time[0].split(":").map(Number);
+      const startDate = new Date();
+      startDate.setHours(hours, minutes, 0, 0);
+
+      const durationInMinutes = parseDuration(duration);
+      const endDate = new Date(startDate.getTime() + durationInMinutes * 60000);
+
+      const startFormatted = startDate.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+      const endFormatted = endDate.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+
+      return `${startFormatted} to ${endFormatted}`;
+    } catch (err) {
+      console.error("Error formatting time range:", err);
+      return "Invalid time range";
+    }
+  };
+
+  const parseDuration = (duration) => {
+    try {
+      if (!duration) {
+        return 60;
+      }
+      return parseInt(duration) * 60;
+    } catch (err) {
+      console.error("Error parsing duration:", err);
+      return 0;
+    }
   };
 
   return (
     <div className="page-events-container">
-      {/* Sidebar */}
-        <aside className="page-events-sidebar">
-          <div className="page-events-logo">
-          </div>
-          <nav className="page-events-nav">
-            <ul>
-          <li className="active"><FontAwesomeIcon icon={faLink} />  Events</li>
-          <li><FontAwesomeIcon icon={faCalendarDay} />  Booking</li>
-          <li><FontAwesomeIcon icon={faClock}  />  Availability</li>
-          <li><FontAwesomeIcon icon={faGear}  />  Settings</li>
-            </ul>
-          </nav>
-          <button
-            className="page-events-create-btn"
-            onClick={() => navigate("/create-event")}
-          >
-            + Create
-          </button>
-          <div className="page-events-user">
-            <div className="user-avatar">   </div>
-            <p>{currentUser?.username || "Guest"}</p>
-          </div>
-        </aside>
+      <aside className="page-events-sidebar">
+        <div className="page-events-logo"></div>
+        <nav className="page-events-nav">
+          <ul>
+            <li className="active" onClick={() => navigate("/events")}>
+              <FontAwesomeIcon icon={faLink} /> Events
+            </li>
+            <li onClick={() => navigate("/booking")}>
+              <FontAwesomeIcon icon={faCalendarDay} /> Booking
+            </li>
+            <li onClick={() => navigate("/availability")}>
+              <FontAwesomeIcon icon={faClock} /> Availability
+            </li>
+            <li onClick={() => navigate("/settings")}>
+              <FontAwesomeIcon icon={faGear} /> Settings
+            </li>
+          </ul>
+        </nav>
+        <button
+          className="page-events-create-btn"
+          onClick={() => navigate("/create-event")}
+        >
+          + Create
+        </button>
+        <div className="page-events-user">
+          <div className="user-avatar"></div>
+          <p>{currentUser?.username || "Guest"}</p>
+        </div>
+      </aside>
 
-        {/* Main Content */}
       <main className="page-events-main">
         <header className="page-events-header">
           <h2>Events</h2>
@@ -157,87 +224,61 @@ function EventsPage() {
         {error && <p className="page-events-error">{error}</p>}
 
         <div className="page-events-cards">
-          {/* Upcoming Meetings */}
-          
-          <div className="page-events-category-cards">
-            {categorizedEvents.upcoming.map((evt) => (
-              <div key={evt._id} className="page-events-card">
-                <h3>{evt.title}</h3>
-                <p>
-                  {new Date(evt.date).toDateString()} <br /> {evt.time}
-                </p>
-                <div className="page-events-card-status">
-                  <span>{evt.status}</span>
-                  <label className="switch">
-                    <input
-                      type="checkbox"
-                      checked={evt.isActive}
-                      onChange={() => handleToggle(evt._id, evt.isActive)}
-                    />
-                    <span className="slider round"></span>
-                  </label>
+          {events.map((evt) => (
+            <div key={evt._id} className={`meeting-card ${evt.isActive ? "" : "toggled"}`}>
+              {evt.hasConflict && (
+                <div className="meeting-card-conflict">
+                  <span>Conflict of timing</span>
                 </div>
-                <div className="page-events-card-actions">
-                  <button onClick={() => handleEdit(evt._id)}>✏️</button>
-                  <button onClick={() => handleDelete(evt._id)}>🗑️</button>
-                </div>
-              </div>
-            ))}
-          </div>
+              )}
 
-          {/* Pending Meetings */}
-          <div className="page-events-category-cards">
-            {categorizedEvents.pending.map((evt) => (
-              <div key={evt._id} className="page-events-card">
-                <h3>{evt.title}</h3>
-                <p>
-                  {new Date(evt.date).toDateString()} <br /> {evt.time}
-                </p>
-                <div className="page-events-card-status">
-                  <span>{evt.status}</span>
-                  <label className="switch">
-                    <input
-                      type="checkbox"
-                      checked={evt.isActive}
-                      onChange={() => handleToggle(evt._id, evt.isActive)}
-                    />
-                    <span className="slider round"></span>
-                  </label>
-                </div>
-                <div className="page-events-card-actions">
-                  <button onClick={() => handleEdit(evt._id)}>✏️</button>
-                  <button onClick={() => handleDelete(evt._id)}>🗑️</button>
-                </div>
+              <div className="meeting-card-header">
+                <h3 className="meeting-card-title">{evt.title || "Meeting"}</h3>
+                <button
+                  className="meeting-card-edit-btn"
+                  onClick={() => handleEdit(evt._id)}
+                >
+                  <div className="edit icon"> </div>
+                </button>
               </div>
-            ))}
-          </div>
 
-          {/* Canceled Meetings */}
-          <div className="page-events-category-cards">
-            {categorizedEvents.canceled.map((evt) => (
-              <div key={evt._id} className="page-events-card">
-                <h3>{evt.title}</h3>
-                <p>
-                  {new Date(evt.date).toDateString()} <br /> {evt.time}
-                </p>
-                <div className="page-events-card-status">
-                  <span>{evt.status}</span>
-                  <label className="switch">
-                    <input
-                      type="checkbox"
-                      checked={evt.isActive}
-                      onChange={() => handleToggle(evt._id, evt.isActive)}
-                    />
-                    <span className="slider round"></span>
-                  </label>
-                </div>
-                <div className="page-events-card-actions">
-                  <button onClick={() => handleEdit(evt._id)}>✏️</button>
-                  <button onClick={() => handleDelete(evt._id)}>🗑️</button>
+              <p className="meeting-card-date">
+                {new Date(evt.date).toDateString()}
+              </p>
+              <p className="meeting-card-time">
+                {formatTimeRange(evt.time, evt.duration)}
+              </p>
+              <p className="meeting-card-meta">
+                {evt.duration || "1hr"}, {"Group meeting"}
+              </p>
+
+              <div className="meeting-card-footer">
+                <label className="switch">
+                  <input
+                    type="checkbox"
+                    checked={evt.isActive}
+                    onChange={() => handleToggle(evt._id, evt.isActive)}
+                  />
+                  <span className="slider round"></span>
+                </label>
+
+                <div className="meeting-card-actions">
+                  <button
+                    className="meeting-card-icon-btn"
+                    onClick={() => handleCopyLink(evt._id)}
+                  >
+                    <div className="copy icon"> </div>
+                  </button>
+                  <button
+                    className="meeting-card-icon-btn"
+                    onClick={() => handleDelete(evt._id)}
+                  >
+                    <div className="delete icon"> </div>
+                  </button>
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </main>
     </div>

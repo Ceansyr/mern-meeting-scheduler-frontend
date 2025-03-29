@@ -8,6 +8,7 @@ function CreateEventPage() {
   const navigate = useNavigate();
 
   const [currentUser, setCurrentUser] = useState(null);
+
   const fetchCurrentUser = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -36,7 +37,6 @@ function CreateEventPage() {
     }
   };
 
-  // State for form data
   const [formData, setFormData] = useState({
     topic: "",
     hostName: "Guest",
@@ -44,16 +44,15 @@ function CreateEventPage() {
     date: "",
     time: "",
     amPm: "PM",
-    timeZone: "UTC+5:00 Delhi",
-    duration: "1 hour",
+    timeZone: "",
+    duration: " ",
     bannerImage: "",
     backgroundColor: "",
     eventLink: "",
     password: "",
-    participants: "", // comma-separated string, later parsed to an array
+    participants: "",
   });
 
-  // Step management: step 1 for basic info, step 2 for customization
   const [step, setStep] = useState(1);
   const [error, setError] = useState("");
 
@@ -61,20 +60,40 @@ function CreateEventPage() {
     fetchCurrentUser();
   }, []);
 
-  // Handle input changes
+  const isLightColor = (color) => {
+    const hexToRgb = (hex) => {
+      const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+      hex = hex.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b);
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result
+        ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16),
+          }
+        : null;
+    };
+
+    const rgb = hexToRgb(color);
+    if (!rgb) return false;
+
+    const brightness = 0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b;
+    return brightness > 200;
+  };
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      [e.target.name]: e.target.value,
+    }));
   };
 
   const handleCancel = () => {
-    // Navigate back or reset form
     alert("Form canceled.");
   };
 
-  // Validate and proceed to next step
   const handleNext = (e) => {
     e.preventDefault();
-    // Basic validation for Step 1: topic, Date, Time are required
     if (!formData.topic || !formData.date || !formData.time) {
       setError("Please fill in the required fields: topic, Date, and Time.");
       return;
@@ -83,25 +102,25 @@ function CreateEventPage() {
     setStep(2);
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    // Prepare payload; convert participants to array if provided
+    const updatedFormData = { ...formData };
+
     const payload = {
-      topic: formData.topic,
+      title: updatedFormData.topic,
+      description: updatedFormData.description,
+      date: updatedFormData.date,
+      time: `${updatedFormData.time} ${updatedFormData.amPm} (${updatedFormData.timeZone})`,
+      bannerImage: updatedFormData.bannerImage,
+      backgroundColor: updatedFormData.backgroundColor,
       hostName: currentUser?.username || "Guest",
-      description: formData.description,
-      date: formData.date,
-      time: `${formData.time} ${formData.amPm} (${formData.timeZone})`,
-      duration: formData.duration,
-      bannerImage: formData.bannerImage,
-      backgroundColor: formData.backgroundColor,
-      eventLink: formData.eventLink,
-      password: formData.password,
-      participants: formData.participants
-        ? formData.participants.split(",").map((p) => p.trim())
+      duration: updatedFormData.duration,
+      eventLink: updatedFormData.eventLink,
+      password: updatedFormData.password,
+      participants: updatedFormData.participants
+        ? updatedFormData.participants.split(",").map((p) => p.trim())
         : [],
     };
 
@@ -121,31 +140,28 @@ function CreateEventPage() {
         throw new Error(errorData.message || "Failed to create event");
       }
 
-      // On success, navigate back to Events Page
       navigate("/events");
     } catch (err) {
       setError(err.message || "An error occurred during event creation.");
     }
   };
 
-  // Render the form according to the current step
   return (
     <div className="page-events-container">
-      {/* Sidebar */}
       <aside className="page-events-sidebar">
         <div className="page-events-logo"></div>
         <nav className="page-events-nav">
           <ul>
-            <li className="active">
+            <li onClick={() => navigate("/events")}>
               <FontAwesomeIcon icon={faLink} /> Events
             </li>
-            <li>
+            <li onClick={() => navigate("/booking")}>
               <FontAwesomeIcon icon={faCalendarDay} /> Booking
             </li>
-            <li>
+            <li onClick={() => navigate("/availability")}>
               <FontAwesomeIcon icon={faClock} /> Availability
             </li>
-            <li>
+            <li onClick={() => navigate("/settings")}>
               <FontAwesomeIcon icon={faGear} /> Settings
             </li>
           </ul>
@@ -162,7 +178,6 @@ function CreateEventPage() {
         </div>
       </aside>
 
-      {/* Main Content */}
       <main className="page-events-main">
         <header className="page-events-header">
           <h2>Events</h2>
@@ -176,139 +191,246 @@ function CreateEventPage() {
           {error && <p className="add-event-error">{error}</p>}
           <div className="line"></div>
 
-          <form className="add-event-form" onSubmit={step === 1 ? handleNext : handleSubmit}>
-            {/* Top Section */}
-            <div className="add-event-top-row">
-              {/* Event Topic */}
-              <div className="add-event-field label-input">
-                  <label>
-                    Event Topic <span>*</span>
+          <form
+            className="add-event-form"
+            onSubmit={step === 1 ? handleNext : handleSubmit}
+          >
+            {step === 1 && (
+              <>
+                <div className="add-event-top-row">
+                  <div className="add-event-field label-input">
+                    <label>
+                      Event Topic <span>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="topic"
+                      placeholder="Set a conference topic before it starts"
+                      value={formData.topic}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="add-event-field label-input">
+                    <label>Password</label>
+                    <input
+                      type="password"
+                      name="password"
+                      placeholder="Password"
+                      value={formData.password}
+                      onChange={handleChange}
+                    />
+                  </div>
+
+                  <div className="add-event-field label-input">
+                    <label>Host name</label>
+                    <input
+                      type="text"
+                      name="hostName"
+                      value={currentUser?.username || "Guest"}
+                      onChange={handleChange}
+                    />
+                  </div>
+
+                  <div className="add-event-field label-input">
+                    <label>Description</label>
+                    <input
+                      type="text"
+                      name="description"
+                      placeholder="Description"
+                      value={formData.description}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+
+                <div className="line"></div>
+
+                <div className="add-event-bottom-row">
+                  <div className="add-event-date-time label-input">
+                    <label>
+                      Date and time <span>*</span>
+                    </label>
+                    <div className="add-event-datetime-group">
+                      <input
+                        type="date"
+                        name="date"
+                        value={formData.date}
+                        onChange={handleChange}
+                        required
+                      />
+                      <input
+                        className="small"
+                        type="text"
+                        name="time"
+                        placeholder="02:30"
+                        value={formData.time}
+                        onChange={handleChange}
+                        required
+                      />
+                      <select
+                        className="small"
+                        name="amPm"
+                        value={formData.amPm}
+                        onChange={handleChange}
+                      >
+                        <option value="AM">AM</option>
+                        <option value="PM">PM</option>
+                      </select>
+                      <select
+                        name="timeZone"
+                        value={formData.timeZone}
+                        onChange={handleChange}
+                      >
+                        <option value="UTC+5:00 Delhi">UTC +5:00 Delhi</option>
+                        <option value="UTC+5:30">UTC+5:30</option>
+                        <option value="UTC+1:00">UTC+1:00</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="add-event-duration label-input">
+                    <label>Set duration</label>
+                    <select
+                      className="duration"
+                      name="duration"
+                      value={formData.duration}
+                      onChange={handleChange}
+                      onBlur={handleChange}
+                    >
+                      <option value="0.5">30 minutes</option>
+                      <option value="1">1 hour</option>
+                      <option value="2">2 hours</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="add-event-buttons">
+                  <button
+                    type="button"
+                    className="add-event-cancel"
+                    onClick={handleCancel}
+                  >
+                    Cancel
+                  </button>
+                  <button type="submit" className="add-event-save">
+                    Save
+                  </button>
+                </div>
+              </>
+            )}
+
+            {step === 2 && (
+              <div className="page-create-event-step step-two-container">
+                <div className="step-two-banner-section">
+                  <label className="step-two-label">Banner</label>
+                  <div
+                    className="step-two-banner"
+                    style={{
+                      backgroundColor: formData.backgroundColor || "#f0f0f0",
+                    }}
+                  >
+                    <div className="step-two-banner-avatar"></div>
+                    <span
+                      style={{
+                        color: isLightColor(
+                          formData.backgroundColor || "#f0f0f0"
+                        )
+                          ? "#333"
+                          : "#fff",
+                      }}
+                      className="step-two-banner-title"
+                    >
+                      {formData.topic || "Team A Meeting-1"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="step-two-color-section">
+                  <label className="step-two-label">
+                    Custom Background Color
+                  </label>
+                  <div className="step-two-color-swatches">
+                    <div
+                      className="swatch"
+                      style={{ backgroundColor: "#ff6600" }}
+                      onClick={() =>
+                        setFormData({ ...formData, backgroundColor: "#ff6600" })
+                      }
+                    ></div>
+                    <div
+                      className="swatch"
+                      style={{ backgroundColor: "#000000" }}
+                      onClick={() =>
+                        setFormData({ ...formData, backgroundColor: "#000000" })
+                      }
+                    ></div>
+                    <div
+                      className="swatch"
+                      style={{
+                        backgroundColor: "#ffffff",
+                        border: "1px solid #ccc",
+                      }}
+                      onClick={() =>
+                        setFormData({ ...formData, backgroundColor: "#ffffff" })
+                      }
+                    ></div>
+                  </div>
+                  <input
+                    type="text"
+                    className="step-two-hex-input"
+                    placeholder="#000000"
+                    value={formData.backgroundColor}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        backgroundColor: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="line"></div>
+
+                <div className="step-two-field label-input">
+                  <label className="step-two-label">
+                    Add link <span>*</span>
                   </label>
                   <input
                     type="text"
-                    name="topic"
-                    placeholder="Set a conference topic before it starts"
-                    value={formData.topic}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-          
-                {/* Password */}
-                <div className="add-event-field label-input">
-                  <label>Password</label>
-                  <input
-                    type="password"
-                    name="password"
-                    placeholder="Password"
-                    value={formData.password}
+                    name="eventLink"
+                    placeholder="Enter URL Here"
+                    value={formData.eventLink}
                     onChange={handleChange}
                   />
                 </div>
 
-              {/* Host Name */}
-              <div className="add-event-field label-input">
-                  <label>Host name</label>
-                  <input
-                      type="text"
-                      name="hostName"
-                      value={formData.hostName}
-                      onChange={handleChange}
-                    />
-                </div>
-
-                {/* Description */}
-                <div className="add-event-field label-input">
-                  <label>Description</label>
+                <div className="step-two-field label-input">
+                  <label className="step-two-label">Add Emails</label>
                   <input
                     type="text"
-                    name="description"
-                    placeholder="Description"
-                    value={formData.description}
+                    name="participants"
+                    placeholder="Add member Emails"
+                    value={formData.participants}
                     onChange={handleChange}
                   />
                 </div>
-            </div>
 
-            <div className="line"></div>
-
-            {/* Bottom Section */}
-            <div className="add-event-bottom-row">
-              <div className="add-event-date-time label-input">
-                <label>
-                  Date and time <span>*</span>
-                </label>
-                <div className="add-event-datetime-group">
-                  {/* Date */}
-                  <input
-                    type="date"
-                    name="date"
-                    value={formData.date}
-                    onChange={handleChange}
-                    required
-                  />
-                  {/* Time */}
-                  <input
-                    className="small"
-                    type="text"
-                    name="time"
-                    placeholder="02:30"
-                    value={formData.time}
-                    onChange={handleChange}
-                    required
-                  />
-                  {/* AM/PM */}
-                  <select
-                    className="small"
-                    name="amPm"
-                    value={formData.amPm}
-                    onChange={handleChange}
+                <div className="step-two-actions">
+                  <button
+                    type="button"
+                    className="step-two-cancel-btn"
+                    onClick={() => setStep(1)}
                   >
-                    <option value="AM">AM</option>
-                    <option value="PM">PM</option>
-                  </select>
-                  {/* Timezone */}
-                  <select
-                    value={formData.timeZone}
-                    onChange={handleChange}
-                  >
-                    <option value="UTC+5:00 Delhi">(UTC +5:00 Delhi)</option>
-                    <option value="UTC+5:30">UTC+5:30</option>
-                    <option value="UTC+1:00">UTC+1:00</option>
-                    {/* Add more as needed */}
-                  </select>
+                    Cancel
+                  </button>
+                  <button type="submit" className="step-two-save-btn">
+                    Save
+                  </button>
                 </div>
               </div>
-
-              <div className="add-event-duration label-input">
-                <label>Set duration</label>
-                <select
-                  className="duration"
-                  name="duration"
-                  value={formData.duration}
-                  onChange={handleChange}
-                >
-                  <option value="30 minutes">30 minutes</option>
-                  <option value="1 hour">1 hour</option>
-                  <option value="2 hours">2 hours</option>
-                  {/* Add more durations as needed */}
-                </select>
-              </div>
-            </div>
-
-            {/* Buttons */}
-            <div className="add-event-buttons">
-              <button
-                type="button"
-                className="add-event-cancel"
-                onClick={handleCancel}
-              >
-                Cancel
-              </button>
-              <button type="submit" className="add-event-save">
-                Save
-              </button>
-            </div>
+            )}
           </form>
         </div>
       </main>
