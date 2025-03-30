@@ -14,6 +14,11 @@ function Booking() {
   const [error, setError] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
 
+  useEffect(() => {
+    fetchAllEvents();
+    fetchCurrentUser();
+  }, []);
+
   const fetchCurrentUser = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -42,12 +47,6 @@ function Booking() {
     }
   };
 
-  useEffect(() => {
-    // On component mount, fetch all events and store them in allEvents
-    fetchAllEvents();
-    fetchCurrentUser();
-  }, []);
-
   // Fetch events from the backend (GET /api/events)
   // You can add query params if your backend supports filtering: /api/events?category=upcoming
   const fetchAllEvents = async () => {
@@ -56,7 +55,7 @@ function Booking() {
       console.error("No token found in localStorage");
       return;
     }
-
+  
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/events`, {
         method: "GET",
@@ -66,28 +65,68 @@ function Booking() {
         },
         credentials: "include",
       });
-
+  
       if (!response.ok) {
         throw new Error("Failed to fetch events");
       }
       const data = await response.json();
-      setAllEvents(data);
+  
+      // Update event statuses
+      const updatedEvents = data.map((evt) => {
+        const now = new Date();
+  
+        // Validate the date field
+        if (!evt.date || isNaN(new Date(evt.date).getTime())) {
+          console.warn(`Invalid or missing date for event: ${evt._id}`);
+          evt.status = "invalid"; // Mark as invalid if the date is missing or invalid
+          return evt;
+        }
+  
+        // Combine date and time fields to create a valid Date object
+        const eventStartTime = new Date(`${evt.date}T${evt.time || "00:00"}`).getTime();
+  
+        if (eventStartTime < now.getTime()) {
+          evt.status = "past"; // Mark as past if the event has already occurred
+        } else if (evt.status !== "canceled" && evt.status !== "pending") {
+          evt.status = "upcoming"; // Mark as upcoming if it's in the future
+        }
+  
+        return evt;
+      });
+  
+      setAllEvents(updatedEvents);
+  
+      // Send updated statuses to the backend
+      await updateEventStatuses(updatedEvents);
     } catch (err) {
       setError(err.message);
     }
   };
 
+  const updateEventStatuses = async (events) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("No token found in localStorage");
+      return;
+    }
+
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL}/events/update-statuses`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: "include",
+        body: JSON.stringify({ events }),
+      });
+    } catch (err) {
+      console.error("Error updating event statuses:", err);
+    }
+  };
+
   // Filter events based on the active tab
   const getFilteredEvents = () => {
-    const now = new Date();
-    // Update the status of events to "past" if their start time is in the past
-    allEvents.forEach((evt) => {
-    const eventStartTime = new Date(evt.date + " " + evt.time).getTime();
-      if (eventStartTime < now.getTime() && evt.status !== "past") {
-        evt.status = "past";
-      }
-    });
-
     switch (activeTab) {
       case "upcoming":
         // For example, check if status === "upcoming"
