@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAvailability, saveAvailability } from "../api/availabilityApi"; 
-import "../styles/Event.css"; // Reuse the same CSS from your events pages
+import "../styles/Event.css"; 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLink, faCalendarDay, faClock, faGear } from "@fortawesome/free-solid-svg-icons";
 
@@ -9,6 +9,7 @@ export default function Availability() {
   const navigate = useNavigate();
   const [activeView, setActiveView] = useState("availability");
   const [error, setError] = useState("");
+  const [currentUser, setCurrentUser] = useState(null);
 
   const [availabilityData, setAvailabilityData] = useState({
     timeZone: "UTC+5:30",
@@ -24,28 +25,35 @@ export default function Availability() {
   });
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const user = await fetchCurrentUser();
-        if (!user) return "";
+      fetchData();
+  });
 
-        const data = await getAvailability(user.id);
-        const transformedData = transformBackendData(data);
-        setAvailabilityData(transformedData);
-      } catch (err) {
-        console.error("Error fetching data:", err);
-        setError(err.message || "An error occurred while fetching data.");
+  const fetchData = async () => {
+    try {
+      if (availabilityData.availability.length > 0) {
+        return;
       }
-    };
+      const user = await fetchCurrentUser();
+      if (!user || !user.id) {
+        setError("Failed to fetch user information. Please log in again.");
+        console.error("Invalid user object:", user);
+        return;
+      }
 
-    fetchData();
-  }, []);
+      const data = await getAvailability(user.id);
+      const transformedData = transformBackendData(data);
+      setAvailabilityData(transformedData);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError(err.message || "An error occurred while fetching data.");
+    }
+  };
 
   const fetchCurrentUser = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
-      setError("No token found. Please log in.");
-      return "";
+      console.error("No token found in localStorage");
+      return;
     }
 
     try {
@@ -59,65 +67,58 @@ export default function Availability() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch user data.");
+        throw new Error("Failed to fetch user data");
       }
 
       const userData = await response.json();
-      return userData;
+      setCurrentUser(userData);
     } catch (err) {
       console.error("Error fetching user:", err);
-      setError(err.message || "Failed to fetch user data.");
-      return null;
     }
   };
-  
 
-  // Transform backend data to local state shape
   const transformBackendData = (data) => {
-    // data = { userId, timeZone, availability: [{ day: "Monday", slots: [{startTime, endTime}, ...] }, ...] }
     const { timeZone, availability } = data;
-    
-    // Convert each day to { day, slots: ["10:00 AM - 4:00 PM", ...], unavailable: false }
     const updatedDays = availability.map((d) => ({
       day: d.day,
       slots: d.slots.map((slot) => `${slot.startTime} - ${slot.endTime}`),
       unavailable: d.slots.length === 0,
     }));
-    
     return { timeZone, availability: updatedDays };
   };
 
-  // Convert local state shape back to backend shape
   const prepareBackendPayload = () => {
     const { timeZone, availability } = availabilityData;
-
     const transformedAvailability = availability.map((d) => ({
       day: d.day,
       slots: d.unavailable
         ? []
-        : d.slots.map((s) => {
-            const [startTime, endTime] = s.split("-").map((t) => t.trim());
-            return { startTime, endTime };
-          }),
+        : d.slots
+            .map((s) => {
+              const [startTime, endTime] = s.split("-").map((t) => t.trim());
+              if (!startTime || !endTime) {
+                console.warn(`Incomplete slot detected for ${d.day}: ${s}`);
+                return null;
+              }
+              return { startTime, endTime };
+            })
+            .filter(Boolean),
     }));
-
     return { timeZone, availability: transformedAvailability };
   };
 
-  // Toggle day unavailable
   const handleDayToggle = (index) => {
     setAvailabilityData((prev) => {
-      const updated = { ...prev };
-      updated.availability[index] = {
-        ...updated.availability[index],
-        unavailable: !updated.availability[index].unavailable,
-        slots: !updated.availability[index].unavailable ? [] : updated.availability[index].slots,
+      const updatedAvailability = [...prev.availability];
+      updatedAvailability[index] = {
+        ...updatedAvailability[index],
+        unavailable: !updatedAvailability[index].unavailable,
+        slots: !updatedAvailability[index].unavailable ? [] : updatedAvailability[index].slots,
       };
-      return updated;
+      return { ...prev, availability: updatedAvailability };
     });
   };
 
-  // Add a new slot
   const handleAddSlot = (dayIndex) => {
     setAvailabilityData((prev) => {
       const updated = { ...prev };
@@ -126,7 +127,6 @@ export default function Availability() {
     });
   };
 
-  // Change a specific slot
   const handleSlotChange = (dayIndex, slotIndex, value) => {
     setAvailabilityData((prev) => {
       const updated = { ...prev };
@@ -135,7 +135,6 @@ export default function Availability() {
     });
   };
 
-  // Remove a slot
   const handleRemoveSlot = (dayIndex, slotIndex) => {
     setAvailabilityData((prev) => {
       const updated = { ...prev };
@@ -144,19 +143,31 @@ export default function Availability() {
     });
   };
 
-  // Save availability to backend
   const handleSave = async () => {
     try {
       setError("");
+      const invalidSlots = availabilityData.availability.some((d) =>
+        d.slots.some((s) => {
+          const [startTime, endTime] = s.split("-").map((t) => t.trim());
+          return !startTime || !endTime;
+        })
+      );
+      if (invalidSlots) {
+        setError("Please ensure all time slots have both start and end times.");
+        return;
+      }
       const payload = prepareBackendPayload();
       await saveAvailability(payload);
       alert("Availability saved successfully!");
     } catch (err) {
-      setError(err.message);
+      if (err.message.includes("validation failed")) {
+        setError("Please ensure all time slots have both start and end times.");
+      } else {
+        setError(err.message || "An error occurred while saving availability.");
+      }
     }
   };
 
-  // Renders the "Availability" editor
   const renderAvailabilityEditor = () => {
     return (
       <div className="availability-editor-container">
@@ -226,7 +237,6 @@ export default function Availability() {
     );
   };
 
-  // Renders the "Calendar View"
   const renderCalendar = () => {
     return (
       <div className="availability-calendar-container">
@@ -250,25 +260,25 @@ export default function Availability() {
             <div>Sat</div>
           </div>
           <div className="calendar-grid-body">
-            {/* Example placeholder: 2 rows, each row has 7 cells */}
-            <div className="calendar-row">
-              <div className="calendar-cell"></div>
-              <div className="calendar-cell meeting">10:00 AM Meeting</div>
-              <div className="calendar-cell"></div>
-              <div className="calendar-cell"></div>
-              <div className="calendar-cell"></div>
-              <div className="calendar-cell meeting conflict">2:00 PM Meeting</div>
-              <div className="calendar-cell"></div>
-            </div>
-            <div className="calendar-row">
-              <div className="calendar-cell"></div>
-              <div className="calendar-cell"></div>
-              <div className="calendar-cell"></div>
-              <div className="calendar-cell"></div>
-              <div className="calendar-cell"></div>
-              <div className="calendar-cell"></div>
-              <div className="calendar-cell"></div>
-            </div>
+            {availabilityData.availability.map((day, dayIndex) => (
+              <div key={dayIndex} className="calendar-row">
+                {day.unavailable ? (
+                  <div className="calendar-cell unavailable">Unavailable</div>
+                ) : (
+                  <div className="calendar-cell">
+                    {day.slots.length > 0 ? (
+                      day.slots.map((slot, slotIndex) => (
+                        <div key={slotIndex} className="calendar-slot">
+                          {slot}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="calendar-slot empty">No Slots</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -277,11 +287,8 @@ export default function Availability() {
 
   return (
     <div className="page-events-container">
-      {/* SIDEBAR */}
       <aside className="page-events-sidebar">
         <div className="page-events-logo">
-          <img src="logo-placeholder.png" alt="CNNCT Logo" />
-          <span>CNNCT</span>
         </div>
         <nav className="page-events-nav">
           <ul>
@@ -299,13 +306,18 @@ export default function Availability() {
                 </li>
           </ul>
         </nav>
+        <button
+          className="page-events-create-btn"
+          onClick={() => navigate("/create-event")}
+        >
+          + Create
+        </button>
         <div className="page-events-user">
-          <img src="user-avatar.png" alt="User Avatar" />
-          <p>Guest</p>
+          <div className="user-avatar"></div>
+          <p>{currentUser?.username || "Guest"}</p>
         </div>
       </aside>
 
-      {/* MAIN CONTENT */}
       <main className="page-events-main">
         <header className="page-events-header">
           <h2>Availability</h2>

@@ -1,22 +1,31 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/Event.css"; // Reuse the same CSS as EventsPage
+import "../styles/Event.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLink, faCalendarDay, faClock, faGear } from "@fortawesome/free-solid-svg-icons";
 
 function Booking() {
   const navigate = useNavigate();
-
-  // State for all events fetched from the backend
   const [allEvents, setAllEvents] = useState([]);
-  // The currently active tab: "upcoming" (default), "pending", "canceled", "past"
   const [activeTab, setActiveTab] = useState("upcoming");
   const [error, setError] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
-    fetchAllEvents();
-    fetchCurrentUser();
+    const fetchData = async () => {
+      try {
+        const user = await fetchCurrentUser();
+        if (user) {
+          setCurrentUser(user); 
+        }
+        await fetchAllEvents();
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError(err.message || "An error occurred while fetching data.");
+      }
+    };
+
+    fetchData();
   }, []);
 
   const fetchCurrentUser = async () => {
@@ -41,14 +50,12 @@ function Booking() {
       }
 
       const userData = await response.json();
-      setCurrentUser(userData);
+      return userData;
     } catch (err) {
       console.error("Error fetching user:", err);
     }
   };
 
-  // Fetch events from the backend (GET /api/events)
-  // You can add query params if your backend supports filtering: /api/events?category=upcoming
   const fetchAllEvents = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -70,66 +77,71 @@ function Booking() {
         throw new Error("Failed to fetch events");
       }
       const data = await response.json();
-  
-      // Update event statuses
+      
+      const now = new Date();
       const updatedEvents = data.map((evt) => {
-        const now = new Date();
-  
-        // Validate the date field
         if (!evt.date || isNaN(new Date(evt.date).getTime())) {
           console.warn(`Invalid or missing date for event: ${evt._id}`);
-          evt.status = "invalid"; // Mark as invalid if the date is missing or invalid
+          evt.status = "invalid";
           return evt;
         }
   
-        // Combine date and time fields to create a valid Date object
         const eventStartTime = new Date(`${evt.date}T${evt.time || "00:00"}`).getTime();
   
         if (eventStartTime < now.getTime()) {
-          evt.status = "past"; // Mark as past if the event has already occurred
+          evt.status = "past";
         } else if (evt.status !== "canceled" && evt.status !== "pending") {
-          evt.status = "upcoming"; // Mark as upcoming if it's in the future
+          evt.status = "upcoming";
         }
   
         return evt;
       });
+
+      const hasChanges = updatedEvents.some(
+        (updatedEvent, index) =>
+          updatedEvent.status !== data[index].status
+      );
+  
+      if (hasChanges) {
+        await updateEventStatuses(updatedEvents);
+      }
   
       setAllEvents(updatedEvents);
-  
-      // Send updated statuses to the backend
-      await updateEventStatuses(updatedEvents);
+
     } catch (err) {
       setError(err.message);
     }
   };
 
+  let updateTimeout;
   const updateEventStatuses = async (events) => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      console.error("No token found in localStorage");
-      return;
-    }
+    clearTimeout(updateTimeout);
+    updateTimeout = setTimeout(async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("No token found in localStorage");
+        return;
+      }
 
-    try {
-      await fetch(`${import.meta.env.VITE_API_URL}/events/update-statuses`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: "include",
-        body: JSON.stringify({ events }),
-      });
-    } catch (err) {
-      console.error("Error updating event statuses:", err);
-    }
+      try {
+        await fetch(`${import.meta.env.VITE_API_URL}/events/update-statuses`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          credentials: "include",
+          body: JSON.stringify({ events }),
+        });
+      } catch (err) {
+        console.error("Error updating event statuses:", err);
+      }
+    }, 500);
   };
 
-  // Filter events based on the active tab
   const getFilteredEvents = () => {
     switch (activeTab) {
       case "upcoming":
-        // For example, check if status === "upcoming"
         return allEvents.filter((evt) => evt.status === "upcoming");
       case "pending":
         return allEvents.filter((evt) => evt.status === "pending");
@@ -146,7 +158,6 @@ function Booking() {
 
   return (
     <div className="page-events-container">
-    {/* ======= SIDEBAR ======= */}
         <aside className="page-events-sidebar">
             <div className="page-events-logo"></div>
             <nav className="page-events-nav">
@@ -177,7 +188,6 @@ function Booking() {
             </div>
         </aside>
 
-        {/* ======= MAIN CONTENT ======= */}
       <main className="page-events-main">
         <header className="page-events-header">
           <h2>Booking</h2>
@@ -186,7 +196,6 @@ function Booking() {
 
         {error && <p className="page-events-error">{error}</p>}
 
-        {/* TAB BAR */}
         <div className="booking-tabs">
           <button
             className={activeTab === "upcoming" ? "booking-tab active" : "booking-tab"}
@@ -214,7 +223,6 @@ function Booking() {
           </button>
         </div>
 
-        {/* LIST OF EVENTS */}
         <div className="booking-list">
           {filteredEvents.length === 0 ? (
             <p>No {activeTab} events found.</p>
