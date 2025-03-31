@@ -159,7 +159,7 @@ function SettingsPage() {
               <div className="page-events-logo"></div>
               <nav className="page-events-nav">
                 <ul>
-                  <li className="active" onClick={() => navigate("/events")}>
+                  <li onClick={() => navigate("/events")}>
                     <FontAwesomeIcon icon={faLink} /> Events
                   </li>
                   <li onClick={() => navigate("/booking")}>
@@ -168,7 +168,7 @@ function SettingsPage() {
                   <li onClick={() => navigate("/availability")}>
                     <FontAwesomeIcon icon={faClock} /> Availability
                   </li>
-                  <li onClick={() => navigate("/settings")}>
+                  <li className="active" onClick={() => navigate("/settings")}>
                     <FontAwesomeIcon icon={faGear} /> Settings
                   </li>
                 </ul>

@@ -29,3 +29,4 @@ dist/
 .env
 .DS_Store
 .vercel/
+README.md
