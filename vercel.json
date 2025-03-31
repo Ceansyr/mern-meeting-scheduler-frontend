@@ -4,6 +4,5 @@
       "source": "/api/(.*)",
       "destination": "https://mern-meeting-scheduler-backend.onrender.com/api/$1"
     }
-  ],
-  "routes": [{ "src": "/(.*)", "dest": "/index.html" }]
+  ]
 }
