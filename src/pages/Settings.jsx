@@ -1,78 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import "../styles/Event.css"; 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faLink, faCalendarDay, faClock, faGear } from "@fortawesome/free-solid-svg-icons";
+import "../styles/Event.css";
+import Sidebar from "../components/Sidebar";
+import ProfileForm from "../components/settings/ProfileForm";
+// Import only once from authUtils
+import { useCurrentUser, evaluatePasswordStrength } from "../utils/authUtils";
+import { updateUserProfile } from "../api/userApi";
 
 function SettingsPage() {
-  const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState(null);
+  const { currentUser, loading, setCurrentUser } = useCurrentUser();
   const [passwordStrength, setPasswordStrength] = useState('');
-
-  const evaluatePasswordStrength = (password) => {
-    let strength = '';
-    const lengthCriteria = password.length >= 6;
-    const uppercaseCriteria = /[A-Z]/.test(password);
-    const numberCriteria = /[0-9]/.test(password);
-    const specialCharCriteria = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-
-    if (lengthCriteria && uppercaseCriteria && numberCriteria && specialCharCriteria) {
-      strength = 'Strong';
-    } else if (lengthCriteria && (uppercaseCriteria || numberCriteria || specialCharCriteria)) {
-      strength = 'Medium';
-    } else {
-      strength = 'Weak';
-    }
-    setPasswordStrength(strength);
-  };
-  
-  const fetchCurrentUser = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      console.error("No token found in localStorage");
-      return;
-    }
-
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/user/me`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch user data");
-      }
-
-      const userData = await response.json();
-      setCurrentUser(userData);
-      return userData;
-    } catch (err) {
-      console.error("Error fetching user:", err);
-    }
-  };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const user = await fetchCurrentUser();
-      if (user) {
-        setCurrentUser(user);
-        setFormData({
-          firstName: user.firstName || "",
-          lastName: user.lastName || "",
-          email: user.email || "",
-          password: "",
-          confirmPassword: "",
-        });
-      }
-    };
-  
-    fetchData();
-  }, []);
-
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -83,12 +19,24 @@ function SettingsPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  useEffect(() => {
+    if (!loading && currentUser) {
+      setFormData({
+        firstName: currentUser.firstName || "",
+        lastName: currentUser.lastName || "",
+        email: currentUser.email || "",
+        password: "",
+        confirmPassword: "",
+      });
+    }
+  }, [currentUser, loading]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
 
     if (name === 'password') {
-      evaluatePasswordStrength(value);
+      setPasswordStrength(evaluatePasswordStrength(value));
     }
   };
 
@@ -97,6 +45,7 @@ function SettingsPage() {
     setError("");
     setSuccess("");
 
+    // Validation
     if (!formData.firstName.trim()) {
       setError("First name is required.");
       return;
@@ -109,158 +58,57 @@ function SettingsPage() {
       setError("Email is required.");
       return;
     }
-    if (formData.password !== formData.confirmPassword) {
+    if (formData.password && formData.password !== formData.confirmPassword) {
       setError("Passwords do not match.");
       return;
     }
-    if (passwordStrength === 'Weak') {
+    if (formData.password && passwordStrength === 'Weak') {
       setError('Password is too weak. Please choose a stronger password.');
       return;
     }
 
+    // Prepare payload
     const payload = {
       firstName: formData.firstName,
       lastName: formData.lastName,
       email: formData.email,
     };
+
     if (formData.password) {
       payload.password = formData.password;
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/user/update`, {
-        method: "PUT",
-        headers: { 
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        credentials: "include",
-        body: JSON.stringify(payload),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to update settings");
-      }
-      setSuccess("Account updated successfully!");
-
-      if (formData.email !== currentUser.email || formData.password) {
-        localStorage.removeItem("user");
-        alert("Email or password updated. Please log in again.");
-        navigate("/login");
-      }
+      const updatedUser = await updateUserProfile(payload);
+      setCurrentUser(updatedUser);
+      setSuccess("Profile updated successfully!");
     } catch (err) {
-      setError(err.message || "An error occurred");
+      console.error("Error updating profile:", err);
+      setError(err.message || "Failed to update profile");
     }
   };
 
   return (
     <div className="page-events-container">
-      <aside className="page-events-sidebar">
-              <div className="page-events-logo"></div>
-              <nav className="page-events-nav">
-                <ul>
-                  <li onClick={() => navigate("/events")}>
-                    <FontAwesomeIcon icon={faLink} /> Events
-                  </li>
-                  <li onClick={() => navigate("/booking")}>
-                    <FontAwesomeIcon icon={faCalendarDay} /> Booking
-                  </li>
-                  <li onClick={() => navigate("/availability")}>
-                    <FontAwesomeIcon icon={faClock} /> Availability
-                  </li>
-                  <li className="active" onClick={() => navigate("/settings")}>
-                    <FontAwesomeIcon icon={faGear} /> Settings
-                  </li>
-                </ul>
-              </nav>
-              <button
-                className="page-events-create-btn"
-                onClick={() => navigate("/create-event")}
-              >
-                + Create
-              </button>
-              <div className="page-events-user">
-                <div className="user-avatar"></div>
-                <p>{currentUser?.username || "Guest"}</p>
-              </div>
-            </aside>
-
+      <Sidebar activePage="settings" currentUser={currentUser} />
+      
       <main className="page-events-main">
         <header className="page-events-header">
-          <h2>Settings</h2>
-          <p>Update your account information below. Changes to email or password will require you to log in again.</p>
+          <h2>Account Settings</h2>
+          <p>Manage your profile and account preferences.</p>
         </header>
-
-        {error && <p className="settings-error">{error}</p>}
-        {success && <p className="settings-success">{success}</p>}
-
-        <form className="settings-form" onSubmit={handleSubmit}>
-          <div className="settings-group">
-            <label htmlFor="firstName">First Name</label>
-            <input
-              type="text"
-              id="firstName"
-              name="firstName"
-              placeholder="Enter your first name"
-              value={formData.firstName}
-              onChange={handleChange}
-            />
-          </div>
-          <div className="settings-group">
-            <label htmlFor="lastName">Last Name</label>
-            <input
-              type="text"
-              id="lastName"
-              name="lastName"
-              placeholder="Enter your last name"
-              value={formData.lastName}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="settings-group">
-            <label htmlFor="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              placeholder="Enter your email"
-              value={formData.email}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="settings-group">
-            <label htmlFor="password">Password (leave blank to keep current)</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              placeholder="Enter new password"
-              value={formData.password}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="settings-group">
-            <label htmlFor="confirmPassword">Confirm Password</label>
-            <input
-              type="password"
-              id="confirmPassword"
-              name="confirmPassword"
-              placeholder="Confirm new password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-            />
-          </div>
-
-          <button type="submit" className="settings-submit-btn">
-            Update Settings
-          </button>
-        </form>
+        
+        <ProfileForm
+          formData={formData}
+          passwordStrength={passwordStrength}
+          onChange={handleChange}
+          onSubmit={handleSubmit}
+          error={error}
+          success={success}
+        />
       </main>
     </div>
   );
 }
 
-export default SettingsPage; 
+export default SettingsPage;

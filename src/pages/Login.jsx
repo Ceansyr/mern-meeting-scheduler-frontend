@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Login.css';
+import FormInput from '../components/auth/FormInput';
+import ErrorMessage from '../components/auth/ErrorMessage';
+import { login, storeToken } from '../api/authApi';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -20,23 +23,8 @@ const Login = () => {
     setError('');
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/user/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Login failed');
-      }
-      
-      const data = await response.json();
-      localStorage.setItem('token', `${data.token}`);
-
+      const data = await login(formData);
+      storeToken(data.token);
       navigate('/events');
     } catch (err) {
       setError(err.message || 'An error occurred'); 
@@ -53,42 +41,37 @@ const Login = () => {
             <div className='login-title'>
               <h2>Sign in</h2>
             </div>
-            {error && <p className="error-message">{error}</p>}
+            <ErrorMessage message={error} />
             <form onSubmit={handleSubmit}>
-              <div className="input-group">
-                <input
-                  type="text"
-                  id="username"
-                  name="username"
-                  placeholder="Username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="input-group">
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  placeholder="Password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
+              <FormInput
+                id="username"
+                name="username"
+                placeholder="Username"
+                value={formData.username}
+                onChange={handleChange}
+                required={true}
+              />
+              <FormInput
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
+                required={true}
+              />
               <button type="submit" className="login-btn">
                 Log in
               </button>
             </form>
           </div>
           <div className="warning">
-            <p>Don't have an account? </p> <a href="./Signup.jsx">Sign up</a>
+            <p>Don't have an account? </p> <a href="/signup">Sign up</a>
           </div>
         </div>
       </div>
       <div className="login-image">
-        </div>
+      </div>
     </div>
   );
 };

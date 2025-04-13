@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Signup.css';
+import FormInput from '../components/auth/FormInput';
+import ErrorMessage from '../components/auth/ErrorMessage';
+import PasswordStrengthIndicator from '../components/auth/PasswordStrengthIndicator';
+import { register, storeToken } from '../api/authApi';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -55,23 +59,8 @@ const Signup = () => {
     }
 
     try {
-      const response = await fetch(`https://mern-meeting-scheduler-backend.vercel.app/api/user/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Registration failed');
-      }
-      
-      const data = await response.json();
-      localStorage.setItem('token', `${data.token}`);
-
+      const data = await register(formData);
+      storeToken(data.token);
       navigate('/username-preference');
     } catch (err) {
       setError(err.message || 'An error occurred'); 
@@ -89,44 +78,36 @@ const Signup = () => {
               <h2>Create an Account</h2>
               <a href="/login">sign in instead</a>
             </div>
-            {error && <p className="error-message">{error}</p>}
+            <ErrorMessage message={error} />
             <form onSubmit={handleSubmit}>
-              <div className="input-group">
-                <label htmlFor="firstName">First Name</label>
-                <input
-                  type="text"
-                  id="firstName"
-                  name="firstName"
-                  placeholder="First Name"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="input-group">
-                <label htmlFor="lastName">Last Name</label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  placeholder="Last Name"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="input-group">
-                <label htmlFor="email">Email</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  placeholder="Email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
+              <FormInput
+                id="firstName"
+                name="firstName"
+                placeholder="First Name"
+                value={formData.firstName}
+                onChange={handleChange}
+                required={true}
+                label="First Name"
+              />
+              <FormInput
+                id="lastName"
+                name="lastName"
+                placeholder="Last Name"
+                value={formData.lastName}
+                onChange={handleChange}
+                required={true}
+                label="Last Name"
+              />
+              <FormInput
+                type="email"
+                id="email"
+                name="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={handleChange}
+                required={true}
+                label="Email"
+              />
               <div className="input-group">
                 <label htmlFor="password">Password</label>
                 <input
@@ -139,23 +120,19 @@ const Signup = () => {
                   required
                 />
                 {formData.password && (
-                  <p className={`password-strength ${passwordStrength.toLowerCase()}`}>
-                    Password Strength: {passwordStrength}
-                  </p>
+                  <PasswordStrengthIndicator strength={passwordStrength} />
                 )}
               </div>
-              <div className="input-group">
-                <label htmlFor="confirmPassword">Confirm Password</label>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  placeholder="Confirm Password"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
+              <FormInput
+                type="password"
+                id="confirmPassword"
+                name="confirmPassword"
+                placeholder="Confirm Password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required={true}
+                label="Confirm Password"
+              />
               <div className="terms">
                 <input type="checkbox" id="terms" required />
                 <label htmlFor="terms">
@@ -175,7 +152,7 @@ const Signup = () => {
         </div>
       </div>
       <div className="signup-image">
-        </div>
+      </div>
     </div>
   );
 };

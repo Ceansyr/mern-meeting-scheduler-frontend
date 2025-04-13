@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import "../styles/PreferencesPage.css";
+import FormInput from '../components/auth/FormInput';
+import ErrorMessage from '../components/auth/ErrorMessage';
+import CategoryButton from '../components/auth/CategoryButton';
+import { saveUserPreference } from '../api/authApi';
 
 const UsernameAndPreference = () => {
   const preferenceCategories = [
@@ -41,21 +45,7 @@ const UsernameAndPreference = () => {
     setError('');
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/user/preference`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(formData),
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to save Username or Preference');
-      }
-
+      await saveUserPreference(formData);
       navigate('/login');
     } catch (err) {
       setError(err.message || 'An error occurred');
@@ -64,7 +54,6 @@ const UsernameAndPreference = () => {
 
   return (
     <div className="page-preferences-container">
-
       <div className="page-preferences-form">
         <div className="page-preferences-logo">
           <div className="logo-icon"></div>
@@ -72,8 +61,7 @@ const UsernameAndPreference = () => {
         <h1 className="page-preferences-title">Your Preferences</h1>
 
         <div className="page-preferences-username">
-          <input
-            type="text"
+          <FormInput
             id="username"
             name="username"
             placeholder="Tell us your username"
@@ -88,17 +76,12 @@ const UsernameAndPreference = () => {
 
         <div className="page-preferences-options">
           {preferenceCategories.map((category) => (
-            <button
+            <CategoryButton
               key={category.id}
-              type="button"
-              className={`page-preferences-option ${
-                formData.selectedCategory === category.name ? "active" : ""
-              }`}
+              category={category}
+              isActive={formData.selectedCategory === category.name}
               onClick={() => handleCategoryClick(category.name)}
-            >
-              <div className={ `category-icon category-icon-${category.id}`}></div>
-              {category.name}
-            </button>
+            />
           ))}
         </div>
 
@@ -109,7 +92,7 @@ const UsernameAndPreference = () => {
         >
           Continue
         </button>
-        {error && <p className="error-message">{error}</p>}
+        <ErrorMessage message={error} />
       </div>
 
       <div className="page-preferences-image"></div>
