@@ -1,15 +1,14 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { getAvailability, saveAvailability } from "../api/availabilityApi"; 
-import "../styles/Event.css"; 
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faLink, faCalendarDay, faClock, faGear } from "@fortawesome/free-solid-svg-icons";
+import React, { useState, useEffect, useCallback } from "react";
+import { getAvailability, saveAvailability } from "../api/availabilityApi";
+import { useCurrentUser } from "../utils/authUtils";
+import "../styles/Event.css";
+import Sidebar from "../components/Sidebar";
+import AvailabilityTable from "../components/availability/AvailabilityTable";
 
 export default function Availability() {
-  const navigate = useNavigate();
-  const [activeView, setActiveView] = useState("availability");
   const [error, setError] = useState("");
-  const [currentUser, setCurrentUser] = useState(null);
+  const [success, setSuccess] = useState("");
+  const { currentUser, loading } = useCurrentUser();
 
   const [availabilityData, setAvailabilityData] = useState({
     timeZone: "UTC+5:30",
@@ -24,58 +23,27 @@ export default function Availability() {
     ],
   });
 
-  useEffect(() => {
-      fetchData();
-  });
-
-  const fetchData = async () => {
+  const fetchAvailabilityData = useCallback(async () => {
     try {
-      if (availabilityData.availability.length > 0) {
-        return;
-      }
-      const user = await fetchCurrentUser();
-      if (!user || !user.id) {
-        setError("Failed to fetch user information. Please log in again.");
-        console.error("Invalid user object:", user);
+      if (!currentUser || !currentUser.id) {
+        setError("User information not available. Please log in again.");
         return;
       }
 
-      const data = await getAvailability(user.id);
+      const data = await getAvailability(currentUser.id);
       const transformedData = transformBackendData(data);
       setAvailabilityData(transformedData);
     } catch (err) {
-      console.error("Error fetching data:", err);
+      console.error("Error fetching availability data:", err);
       setError(err.message || "An error occurred while fetching data.");
     }
-  };
+  }, [currentUser]);
 
-  const fetchCurrentUser = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      console.error("No token found in localStorage");
-      return;
+  useEffect(() => {
+    if (!loading && currentUser) {
+      fetchAvailabilityData();
     }
-
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/user/me`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch user data");
-      }
-
-      const userData = await response.json();
-      setCurrentUser(userData);
-    } catch (err) {
-      console.error("Error fetching user:", err);
-    }
-  };
+  }, [currentUser, loading, fetchAvailabilityData]);
 
   const transformBackendData = (data) => {
     const { timeZone, availability } = data;
@@ -146,200 +114,64 @@ export default function Availability() {
   const handleSave = async () => {
     try {
       setError("");
-      const invalidSlots = availabilityData.availability.some((d) =>
-        d.slots.some((s) => {
-          const [startTime, endTime] = s.split("-").map((t) => t.trim());
-          return !startTime || !endTime;
-        })
-      );
-      if (invalidSlots) {
-        setError("Please ensure all time slots have both start and end times.");
-        return;
-      }
+      setSuccess("");
       const payload = prepareBackendPayload();
       await saveAvailability(payload);
-      alert("Availability saved successfully!");
+      setSuccess("Availability settings saved successfully!");
     } catch (err) {
-      if (err.message.includes("validation failed")) {
-        setError("Please ensure all time slots have both start and end times.");
-      } else {
-        setError(err.message || "An error occurred while saving availability.");
-      }
+      console.error("Error saving availability:", err);
+      setError(err.message || "Failed to save availability settings.");
     }
-  };
-
-  const renderAvailabilityEditor = () => {
-    return (
-      <div className="availability-editor-container">
-        <div className="availability-editor-header">
-          <p>Configure times when you are available for bookings:</p>
-        </div>
-        {error && <p className="availability-error">{error}</p>}
-
-        <table className="availability-table">
-          <thead>
-            <tr>
-              <th>Day</th>
-              <th>Unavailable</th>
-              <th>Time Slots</th>
-            </tr>
-          </thead>
-          <tbody>
-            {availabilityData.availability.map((d, i) => (
-              <tr key={d.day}>
-                <td>{d.day}</td>
-                <td>
-                  <input
-                    type="checkbox"
-                    checked={d.unavailable}
-                    onChange={() => handleDayToggle(i)}
-                  />
-                </td>
-                <td>
-                  {d.unavailable ? (
-                    <span className="unavailable-label">Unavailable</span>
-                  ) : (
-                    <div className="time-slots-container">
-                      {d.slots.map((slot, slotIndex) => (
-                        <div key={slotIndex} className="time-slot-row">
-                          <input
-                            type="text"
-                            value={slot}
-                            onChange={(e) =>
-                              handleSlotChange(i, slotIndex, e.target.value)
-                            }
-                          />
-                          <button
-                            className="remove-slot-btn"
-                            onClick={() => handleRemoveSlot(i, slotIndex)}
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      ))}
-                      <button
-                        className="add-slot-btn"
-                        onClick={() => handleAddSlot(i)}
-                      >
-                        + Add Slot
-                      </button>
-                    </div>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <button className="availability-save-btn" onClick={handleSave}>
-          Save
-        </button>
-      </div>
-    );
-  };
-
-  const renderCalendar = () => {
-    return (
-      <div className="availability-calendar-container">
-        <div className="availability-calendar-header">
-          <div className="calendar-switchers">
-            <button className="calendar-view-btn active">Week</button>
-            <button className="calendar-view-btn">Month</button>
-          </div>
-          <div className="calendar-timezone">
-            {availabilityData.timeZone || "Indian Time Standard"}
-          </div>
-        </div>
-        <div className="availability-calendar-grid">
-          <div className="calendar-grid-header">
-            <div>Sun</div>
-            <div>Mon</div>
-            <div>Tue</div>
-            <div>Wed</div>
-            <div>Thu</div>
-            <div>Fri</div>
-            <div>Sat</div>
-          </div>
-          <div className="calendar-grid-body">
-            {availabilityData.availability.map((day, dayIndex) => (
-              <div key={dayIndex} className="calendar-row">
-                {day.unavailable ? (
-                  <div className="calendar-cell unavailable">Unavailable</div>
-                ) : (
-                  <div className="calendar-cell">
-                    {day.slots.length > 0 ? (
-                      day.slots.map((slot, slotIndex) => (
-                        <div key={slotIndex} className="calendar-slot">
-                          {slot}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="calendar-slot empty">No Slots</div>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
   };
 
   return (
     <div className="page-events-container">
-      <aside className="page-events-sidebar">
-        <div className="page-events-logo">
-        </div>
-        <nav className="page-events-nav">
-          <ul>
-                <li onClick={() => navigate("/events")}>
-                  <FontAwesomeIcon icon={faLink} /> Events
-                </li>
-                <li onClick={() => navigate("/booking")}>
-                  <FontAwesomeIcon icon={faCalendarDay} /> Booking
-                </li>
-                <li className="active" onClick={() => navigate("/availability")}>
-                  <FontAwesomeIcon icon={faClock} /> Availability
-                </li>
-                <li onClick={() => navigate("/settings")}>
-                  <FontAwesomeIcon icon={faGear} /> Settings
-                </li>
-          </ul>
-        </nav>
-        <button
-          className="page-events-create-btn"
-          onClick={() => navigate("/create-event")}
-        >
-          + Create
-        </button>
-        <div className="page-events-user">
-          <div className="user-avatar"></div>
-          <p>{currentUser?.username || "Guest"}</p>
-        </div>
-      </aside>
-
+      <Sidebar activePage="availability" currentUser={currentUser} />
+      
       <main className="page-events-main">
         <header className="page-events-header">
-          <h2>Availability</h2>
-          <p>Configure times when you are available for bookings.</p>
+          <h2>Availability Settings</h2>
+          <p>Set your regular availability for meetings and events.</p>
         </header>
 
-        <div className="availability-view-tabs">
+        {error && <p className="availability-error">{error}</p>}
+        {success && <p className="availability-success">{success}</p>}
+
+        <div className="availability-editor">
+          <div className="availability-editor-header">
+            <label htmlFor="timezone">Time Zone:</label>
+            <select
+              id="timezone"
+              value={availabilityData.timeZone}
+              onChange={(e) =>
+                setAvailabilityData((prev) => ({
+                  ...prev,
+                  timeZone: e.target.value,
+                }))
+              }
+            >
+              <option value="UTC+5:30">India (GMT+5:30)</option>
+              <option value="UTC">GMT (UTC+0)</option>
+              <option value="UTC-5">Eastern Time (UTC-5)</option>
+              <option value="UTC-8">Pacific Time (UTC-8)</option>
+            </select>
+          </div>
+
+          <AvailabilityTable
+            availabilityData={availabilityData}
+            onDayToggle={handleDayToggle}
+            onAddSlot={handleAddSlot}
+            onSlotChange={handleSlotChange}
+            onRemoveSlot={handleRemoveSlot}
+          />
+
           <button
-            className={activeView === "availability" ? "availability-tab active" : "availability-tab"}
-            onClick={() => setActiveView("availability")}
+            className="availability-save-btn"
+            onClick={handleSave}
           >
-            Availability
-          </button>
-          <button
-            className={activeView === "calendar" ? "availability-tab active" : "availability-tab"}
-            onClick={() => setActiveView("calendar")}
-          >
-            Calendar View
+            Save Availability
           </button>
         </div>
-
-        {activeView === "availability" ? renderAvailabilityEditor() : renderCalendar()}
       </main>
     </div>
   );

@@ -1,12 +1,12 @@
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
-export async function getAllEvents() {
+export async function getCurrentUser() {
   const token = localStorage.getItem("token");
   if (!token) {
     throw new Error("No authentication token found");
   }
 
-  const response = await fetch(`${API_URL}/events`, {
+  const response = await fetch(`${API_URL}/user/me`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -16,82 +16,60 @@ export async function getAllEvents() {
   });
 
   if (!response.ok) {
+    if (response.status === 401 || response.status === 403) {
+      throw new Error("Your session has expired. Please log in again.");
+    }
     const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to fetch events");
+    throw new Error(errorData.message || "Failed to fetch user data");
   }
 
   return await response.json();
 }
 
-export async function createEvent(eventData) {
+export async function updateUserProfile(userData) {
   const token = localStorage.getItem("token");
   if (!token) {
     throw new Error("No authentication token found");
   }
 
-  const response = await fetch(`${API_URL}/events`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    credentials: "include",
-    body: JSON.stringify(eventData),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to create event");
-  }
-
-  return await response.json();
-}
-
-export async function toggleEventStatus(eventId, isActive) {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    throw new Error("No authentication token found");
-  }
-
-  const response = await fetch(`${API_URL}/events/${eventId}/toggle`, {
+  const response = await fetch(`${API_URL}/user/profile`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
     credentials: "include",
-    body: JSON.stringify({ isActive }),
+    body: JSON.stringify(userData),
   });
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to toggle event status");
+    throw new Error(errorData.message || "Failed to update profile");
   }
 
   return await response.json();
 }
 
-export async function deleteEvent(eventId) {
+export async function saveUserPreference(preferenceData) {
   const token = localStorage.getItem("token");
   if (!token) {
     throw new Error("No authentication token found");
   }
 
-  const response = await fetch(`${API_URL}/events/${eventId}`, {
-    method: "DELETE",
+  const response = await fetch(`${API_URL}/user/preference`, {
+    method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
     credentials: "include",
+    body: JSON.stringify(preferenceData),
   });
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to delete event");
+    throw new Error(errorData.message || "Failed to save preference");
   }
 
   return await response.json();
 }
-
-  
